@@ -1,56 +1,70 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
-import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
+import { Separator } from "../ui/separator";
+import Image from "next/image";
 
 export default function Hero() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-background to-secondary/20 min-h-[80vh] flex items-center">
-      <div className="container px-4 md:px-6">
-        <div className="flex flex-col items-center justify-center text-center">
-          <motion.h1
-            className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl bg-clip-text text-white bg-gradient-to-r from-primary to-secondary"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            ACC IT Club Official Website
-          </motion.h1>
-          <motion.p
-            className="max-w-[600px] text-[#94a3b8] mt-6 text-xl"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            Hehe, its the best club website lol
-          </motion.p>
-          <motion.div
-            className="mt-10"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <Link href="/join">
-              <Button
-                size="lg"
-                className="bg-[#3b82f6] text-[#0f172a] hover:bg-primary/90 rounded-full px-8 py-3 text-lg font-semibold transition-all duration-300 hover:shadow-lg"
+    <div className="relative" id="home">
+      <section className="py-10 sm:py-16 lg:py-24">
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-2">
+            <div>
+              <p className="text-base font-semibold tracking-wider text-blue-600 uppercase">
+                Welcome to ACC ITC
+              </p>
+              <h1 className="mt-4 text-4xl font-bold lg:mt-8 sm:text-6xl xl:text-8xl">
+                Adamjee Cantonment College
+                <span className="block text-blue-600">IT Club</span>
+              </h1>
+              <p className="mt-4 text-base lg:mt-8 sm:text-xl">
+                Inspiring and empowering students to learn and grow through
+                technology.
+              </p>
+
+              <Link
+                href="#"
+                title=""
+                className="inline-flex items-center px-6 py-4 mt-8 font-semibold text-black transition-all duration-200 bg-blue-600 rounded-full lg:mt-16 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+                role="button"
               >
-                Get Started
-              </Button>
-            </Link>
-          </motion.div>
+                Join Us
+                <svg
+                  className="w-6 h-6 ml-8 -mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                    d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </Link>
+            </div>
+
+            <div>
+              <Image
+                className="w-full"
+                width={500}
+                height={500}
+                src="/assets/acc_view.png"
+                alt=""
+              />
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
-    </section>
+      </section>
+      <Separator className="my-12" />
+    </div>
   );
 }

@@ -30,6 +30,8 @@ export default function AdminDashboard() {
         const statsData = await fetchDashboardStats(user?.email || "");
         setStats(statsData);
         setError(null);
+        // console.log("Fetched Stats:", statsData);
+
       } catch (err) {
         console.error("Failed to fetch dashboard stats:", err);
         setError(
@@ -162,7 +164,8 @@ export default function AdminDashboard() {
                     <div>
                       <div className="font-medium">{app.name}</div>
                       <div className="text-sm text-[#94a3b8]">
-                        {app.department} • {app?.year}
+                      {app.department} • {app?.year ? new Date(app.year).toLocaleDateString() : "N/A"}
+
                       </div>
                     </div>
                     <Button variant="outline" size="sm" asChild>
@@ -212,7 +215,8 @@ export default function AdminDashboard() {
                     <div>
                       <div className="font-medium">{news.title}</div>
                       <div className="text-sm text-[#94a3b8]">
-                        {news.publishedAt ? news.publishedAt : "N/A"}
+                      {news.publishedAt ? new Date(news.publishedAt).toLocaleDateString() : "N/A"}
+
                       </div>
                     </div>
                     <Button variant="outline" size="sm" asChild>
