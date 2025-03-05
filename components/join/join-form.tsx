@@ -29,7 +29,7 @@ import { submitJoinApplication } from "@/lib/firebase/join";
 import { useToast } from "@/components/ui/use-toast";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { DEPARTMENTS, YEARS } from "@/constants/form-options";
+import { STREAM_SECTIONS, STREAMS, YEARS } from "@/constants/form-options";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -41,14 +41,17 @@ const formSchema = z.object({
   phone: z.string().min(10, {
     message: "Please enter a valid phone number.",
   }),
-  department: z.string({
-    required_error: "Please select your department.",
+  stream: z.string({
+    required_error: "Please select your stream.",
+  }),
+  section: z.string({
+    required_error: "Please select your section.",
   }),
   year: z.string({
-    required_error: "Please select your year of study.",
+    required_error: "Please select your academic year.",
   }),
   rollNumber: z.string().min(1, {
-    message: "Roll number is required.",
+    message: "Id number is required.",
   }),
   skills: z.string().min(1, {
     message: "Please list your skills.",
@@ -118,6 +121,9 @@ export default function JoinForm() {
     }
   }
 
+  const [selectedStream, setSelectedStream] = useState<keyof typeof STREAM_SECTIONS | null>(null);
+  const filteredSections = selectedStream ? STREAM_SECTIONS[selectedStream] : [];
+
   return (
     <div className="rounded-lg border bg-card p-6 shadow-sm">
       {error && (
@@ -184,9 +190,9 @@ export default function JoinForm() {
               name="rollNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Roll Number</FormLabel>
+                  <FormLabel>ID Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="CS2023001" {...field} />
+                    <Input placeholder="240387" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -196,39 +202,71 @@ export default function JoinForm() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField
-              control={form.control}
-              name="department"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Department</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your department" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {DEPARTMENTS.map((dept) => (
-                        <SelectItem key={dept.value} value={dept.value}>
-                          {dept.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  control={form.control}
+                  name="stream"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Stream</FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          const streamValue = value as keyof typeof STREAM_SECTIONS;
+                          setSelectedStream(streamValue);
+                          field.onChange(streamValue);
+                          form.setValue("section", ""); // Reset section on stream change
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your stream" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.keys(STREAM_SECTIONS).map((stream) => (
+                            <SelectItem key={stream} value={stream}>
+                              {stream.charAt(0).toUpperCase() + stream.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {selectedStream && (
+                  <FormField
+                    control={form.control}
+                    name="section"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Section</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select your section" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {filteredSections.map((section) => (
+                              <SelectItem key={section.value} value={section.value}>
+                                {section.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
             <FormField
               control={form.control}
               name="year"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Year of Study</FormLabel>
+                  <FormLabel>Academic Year</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}

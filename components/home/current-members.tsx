@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/use-toast";
 interface Member {
   id: string;
   name: string;
-  department: string;
+  stream: string;
   batch: string;
   photoUrl?: string;
 }
@@ -142,7 +142,7 @@ export default function CurrentMembers() {
                             {member.name}
                           </h3>
                           <p className="text-sm text-[#94a3b8]">
-                            {member.department}
+                            {member.stream}
                           </p>
                         </div>
                       </div>

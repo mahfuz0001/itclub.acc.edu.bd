@@ -4,7 +4,7 @@ export interface Member {
   lastName: string;
   name: string;
   email: string;
-  department: string;
+  stream: string;
   batch: string;
   photoUrl?: string;
   role?: string;

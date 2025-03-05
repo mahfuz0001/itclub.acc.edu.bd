@@ -1,19 +1,52 @@
-export const DEPARTMENTS = [
-  { value: "computer-science", label: "Computer Science" },
-  { value: "information-technology", label: "Information Technology" },
-  { value: "electronics", label: "Electronics & Communication" },
-  { value: "electrical", label: "Electrical Engineering" },
-  { value: "mechanical", label: "Mechanical Engineering" },
-  { value: "civil", label: "Civil Engineering" },
-  { value: "chemical", label: "Chemical Engineering" },
-  { value: "biotechnology", label: "Biotechnology" },
-  { value: "other", label: "Other" },
+export const STREAMS = [
+  { value: "science", label: "Science" },
+  { value: "commerce", label: "Commerce" },
+  { value: "arts", label: "Arts" },
+  { value: "others", label: "Others" },
 ]
 
 export const YEARS = [
+  { value: "2022", label: "Batch of 2022" },
+  { value: "2023", label: "Batch of 2023" },
+  { value: "2024", label: "Batch of 2024" },
   { value: "2025", label: "Batch of 2025" },
   { value: "2026", label: "Batch of 2026" },
-  { value: "2027", label: "Batch of 2027" },
-  { value: "2028", label: "Batch of 2028" },
 ]
 
+export const STREAM_SECTIONS: Record<"science" | "business" | "humanities" | "others", { value: string; label: string }[]> = {
+  science: [
+    { value: "S1", label: "S1" },
+    { value: "S2", label: "S2" },
+    { value: "S3", label: "S3" },
+    { value: "S4", label: "S4" },
+    { value: "S5", label: "S5" },
+    { value: "S6", label: "S6" },
+    { value: "S7", label: "S7" },
+    { value: "S8", label: "S8" },
+    { value: "S9", label: "S9" },
+    { value: "S10", label: "S10" },
+    { value: "S11", label: "S11" },
+    { value: "S12", label: "S12" },
+    { value: "S13", label: "S13" },
+    { value: "S14", label: "S14" },
+    { value: "S15", label: "S15" },
+    { value: "S16", label: "S16" },
+    { value: "S17", label: "S17" },
+  ],
+  business: [
+    { value: "B1", label: "B1" },
+    { value: "B2", label: "B2" },
+    { value: "B3", label: "B3" },
+    { value: "B4", label: "B4" },
+  ],
+  humanities: [
+    { value: "A1", label: "A1" },
+    { value: "A2", label: "A2" },
+    { value: "A3", label: "A3" },
+    { value: "A4", label: "A4" },
+  ],
+  others: [
+    { value: "O1", label: "O1" },
+    { value: "O2", label: "O2" },
+  ],
+};

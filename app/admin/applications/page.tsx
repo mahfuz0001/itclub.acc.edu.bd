@@ -26,7 +26,7 @@ interface Application {
   id: string;
   name: string;
   email: string;
-  department: string;
+  stream: string;
   year: string;
   status: "pending" | "approved" | "rejected";
 }
@@ -102,7 +102,7 @@ export default function ApplicationsPage() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>Department</TableHead>
+            <TableHead>Stream</TableHead>
             <TableHead>Year</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
@@ -113,7 +113,7 @@ export default function ApplicationsPage() {
             <TableRow key={application.id}>
               <TableCell>{application.name}</TableCell>
               <TableCell>{application.email}</TableCell>
-              <TableCell>{application.department}</TableCell>
+              <TableCell>{application.stream}</TableCell>
               <TableCell>{application.year}</TableCell>
               <TableCell>
                 <Badge

@@ -13,7 +13,7 @@ export interface Application {
   firstName: string;
   lastName: string;
   email: string;
-  department: string;
+  stream: string;
   status: string;
   createdAt: string;
 }
@@ -31,7 +31,7 @@ export async function getAllApplications(sortOrder: "asc" | "desc") {
         firstName: data.firstName || "",
         lastName: data.lastName || "",
         email: data.email || "",
-        department: data.department || "",
+        stream: data.stream || "",
         status: data.status || "pending",
         createdAt: data.createdAt || "",
       } as Application;

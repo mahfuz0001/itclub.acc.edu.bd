@@ -10,7 +10,7 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
+import { db, storage } from "@/lib/firebase/config";
 import {
   Table,
   TableBody,
@@ -30,17 +30,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import Image from "next/image";
 
 interface Panelist {
   id: string;
   name: string;
   email: string;
-  position: string;
   image: string;
   session: string;
   rank: string;
   description: string;
   contact: string;
+  facebook: string;
+  instagram: string;
+  linkedin?: string;
 }
 
 export default function PanelistsPage() {
@@ -49,14 +53,17 @@ export default function PanelistsPage() {
   const [newPanelist, setNewPanelist] = useState({
     name: "",
     email: "",
-    position: "",
     image: "",
     session: "",
     rank: "",
     description: "",
     contact: "",
+    facebook: "",
+    instagram: "",
+    linkedin: "",
   });
   const { user } = useAuth();
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     fetchPanelists();
@@ -82,17 +89,37 @@ export default function PanelistsPage() {
 
   const handleAddPanelist = async () => {
     try {
-      const docRef = await addDoc(collection(db, "panelists"), newPanelist);
+      let imageUrl = "";
+
+      if (imageFile) {
+        // const fileName = imageFile.name;
+        // const imagePath = `panelists/${fileName}`;
+        // const storageRef = ref(storage, imagePath);
+
+        // await uploadBytes(storageRef, imageFile);
+        // const imageUrl = await getDownloadURL(storageRef);
+
+        const imagePath = `panelists/${imageFile.name}`;
+        const imageRef = ref(storage, `${imagePath}`);
+        await uploadBytes(imageRef, imageFile);
+        const imageUrl = await getDownloadURL(imageRef);
+      }
+
+      const panelistData = { ...newPanelist, image: imageUrl };
+      const docRef = await addDoc(collection(db, "panelists"), panelistData);
+
       setPanelists([...panelists, { ...newPanelist, id: docRef.id }]);
       setNewPanelist({
         name: "",
         email: "",
-        position: "",
         image: "",
         session: "",
         rank: "",
         description: "",
         contact: "",
+        facebook: "",
+        instagram: "",
+        linkedin: "",
       });
     } catch (error) {
       console.error("Error adding panelist:", error);
@@ -166,29 +193,12 @@ export default function PanelistsPage() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="position" className="text-right">
-                Position
-              </Label>
-              <Input
-                id="position"
-                value={newPanelist.position}
-                onChange={(e) =>
-                  setNewPanelist({ ...newPanelist, position: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="image" className="text-right">
-                Image URL
+                Upload Image
               </Label>
               <Input
-                id="image"
-                value={newPanelist.image}
-                onChange={(e) =>
-                  setNewPanelist({ ...newPanelist, image: e.target.value })
-                }
-                className="col-span-3"
+                type="file"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -246,6 +256,43 @@ export default function PanelistsPage() {
                 className="col-span-3"
               />
             </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="facebook" className="text-right">
+                Facebook
+              </Label>
+              <Input
+                id="facebook"
+                value={newPanelist.facebook}
+                onChange={(e) =>
+                  setNewPanelist({ ...newPanelist, facebook: e.target.value })
+                }
+                className="col-span-3"
+              />
+
+              <Label htmlFor="instagram" className="text-right">
+                Instagram
+              </Label>
+              <Input
+                id="instagram"
+                value={newPanelist.instagram}
+                onChange={(e) =>
+                  setNewPanelist({ ...newPanelist, instagram: e.target.value })
+                }
+                className="col-span-3"
+              />
+
+              <Label htmlFor="linkedin" className="text-right">
+                LinkedIn
+              </Label>
+              <Input
+                id="linkedin"
+                value={newPanelist.linkedin}
+                onChange={(e) =>
+                  setNewPanelist({ ...newPanelist, linkedin: e.target.value })
+                }
+                className="col-span-3"
+              />
+            </div>
           </div>
           <Button onClick={handleAddPanelist}>Add Panelist</Button>
         </DialogContent>
@@ -257,6 +304,7 @@ export default function PanelistsPage() {
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Position</TableHead>
+            <TableHead>Image</TableHead>
             <TableHead>Session</TableHead>
             <TableHead>Rank</TableHead>
             <TableHead>Contact</TableHead>
@@ -268,10 +316,21 @@ export default function PanelistsPage() {
             <TableRow key={panelist.id}>
               <TableCell>{panelist.name}</TableCell>
               <TableCell>{panelist.email}</TableCell>
-              <TableCell>{panelist.position}</TableCell>
+              <TableCell>
+                <Image
+                  src={panelist.image}
+                  alt={panelist.name}
+                  width={50}
+                  height={50}
+                  className="rounded-full"
+                />
+              </TableCell>
               <TableCell>{panelist.session}</TableCell>
               <TableCell>{panelist.rank}</TableCell>
               <TableCell>{panelist.contact}</TableCell>
+              <TableCell>{panelist.facebook}</TableCell>
+              <TableCell>{panelist.instagram}</TableCell>
+              <TableCell>{panelist.linkedin}</TableCell>
               <TableCell>
                 <Button
                   variant="outline"
