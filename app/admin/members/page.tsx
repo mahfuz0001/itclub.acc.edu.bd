@@ -62,27 +62,36 @@ export default function MembersPage() {
 
   const fetchMembers = async () => {
     if (!user) return;
-
+  
     try {
       let membersQuery;
-
+  
       if (user.role === "panel" && user.assignedYear) {
         membersQuery = query(
-          collection(db, "members"),
-          where("batch", "==", user.assignedYear)
+          collection(db, "applications"), // Fetch from applications
+          where("status", "==", "approved"), // Only approved members
+          where("year", "==", user.assignedYear)
         );
       } else {
-        membersQuery = collection(db, "members");
+        membersQuery = query(
+          collection(db, "applications"),
+          where("status", "==", "approved") // Only approved users
+        );
       }
-
+  
       const querySnapshot = await getDocs(membersQuery);
       const fetchedMembers = querySnapshot.docs.map(
         (doc) =>
           ({
             id: doc.id,
-            ...doc.data(),
+            name: doc.data().name,
+            email: doc.data().email,
+            department: doc.data().department,
+            batch: doc.data().year, // Map `year` to `batch`
+            status: doc.data().status,
           } as Member)
       );
+  
       setMembers(fetchedMembers);
       setFilteredMembers(fetchedMembers);
       setLoading(false);
@@ -96,6 +105,7 @@ export default function MembersPage() {
       setLoading(false);
     }
   };
+  
 
   const updateMemberStatus = async (memberId: string, newStatus: string) => {
     try {
@@ -191,20 +201,6 @@ export default function MembersPage() {
               <TableCell>{member.batch}</TableCell>
               <TableCell>{member.status}</TableCell>
               <TableCell>
-                <Button
-                  variant="outline"
-                  className="mr-2"
-                  onClick={() => updateMemberStatus(member.id, "active")}
-                >
-                  Activate
-                </Button>
-                <Button
-                  variant="outline"
-                  className="mr-2"
-                  onClick={() => updateMemberStatus(member.id, "inactive")}
-                >
-                  Deactivate
-                </Button>
                 {user?.role !== "panel" && (
                   <Button
                     variant="destructive"

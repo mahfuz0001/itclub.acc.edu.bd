@@ -12,14 +12,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
+import { Separator } from "../ui/separator";
+import Image from "next/image";
 
 interface NewsItem {
   id: string;
   title: string;
   content: string;
   publishedAt: string;
+  imageUrl: string;
+  category: string;
 }
 
 export default function RecentNews() {
@@ -27,6 +31,10 @@ export default function RecentNews() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  const categories = [
+    "All",
+    ...new Set(news.map((item, index) => item.category)),
+  ];
   useEffect(() => {
     const fetchRecentNews = async () => {
       try {
@@ -38,7 +46,14 @@ export default function RecentNews() {
 
         console.log("Fetched news data:", data);
 
-        setNews(data.news || []);
+        setNews(
+          (data.news || []).map((item: any) => ({
+            ...item,
+            publishedAt: item.publishedAt?.seconds
+              ? new Date(item.publishedAt.seconds * 1000).toLocaleDateString()
+              : "Unknown Date",
+          }))
+        );
       } catch (error) {
         console.error("Error fetching recent news:", error);
         toast({
@@ -55,94 +70,115 @@ export default function RecentNews() {
     fetchRecentNews();
   }, [toast]);
 
-  return (
-    <section className="py-20 bg-gradient-to-br from-background via-secondary/5 to-background">
-      <div className="container px-4 md:px-6">
-        <motion.div
-          className="mb-12 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl bg-clip-text text-white bg-gradient-to-r from-primary to-secondary">
-            Recent News
-          </h2>
-          <p className="mx-auto max-w-2xl mt-4 text-xl text-[#94a3b8]">
-            Stay updated with the latest happenings and announcements from our
-            IT club
-          </p>
-        </motion.div>
+  const [filter, setFilter] = useState("All");
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {loading
-            ? Array(3)
-                .fill(null)
-                .map((_, i) => (
-                  <Card
-                    key={i}
-                    className="bg-card/50 backdrop-blur-sm border-none shadow-lg"
-                  >
-                    <CardHeader>
-                      <Skeleton className="h-4 w-2/3 mb-2" />
-                      <Skeleton className="h-6 w-full" />
-                    </CardHeader>
-                    <CardContent>
-                      <Skeleton className="h-20 w-full" />
-                    </CardContent>
-                    <CardFooter>
-                      <Skeleton className="h-10 w-28" />
-                    </CardFooter>
-                  </Card>
-                ))
-            : (news || []).map((item, index) => (
+  const filteredProjects =
+    filter === "All" ? news : news.filter((item) => item.category === filter);
+
+  return (
+    <>
+      <section className="py-20 bg-background" id="news">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
+              Recent News
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Stay up-to-date with the latest happenings in our club.
+            </p>
+          </motion.div>
+
+          <div className="flex justify-center space-x-4 mb-8">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setFilter(category)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  filter === category
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
+          <motion.div
+            layout
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            <AnimatePresence>
+              {/* {(news || []).map((item, index) => ( */}
+              {(filteredProjects || []).map((item) => (
                 <motion.div
                   key={item.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="bg-background rounded-3xl shadow-lg overflow-hidden hover-lift transition-all duration-300 ease-in-out border-2 border-transparent hover:border-primary/10"
                 >
-                  <Card className="bg-card/50 backdrop-blur-sm border-none shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <CardHeader>
-                      <CardDescription className="text-[#3b82f6]/80">
-                        {new Date(item.publishedAt).toLocaleDateString()}
-                      </CardDescription>
-                      <CardTitle className="text-xl font-bold">
-                        {item.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="line-clamp-3 text-[#94a3b8]">
-                        {item.content.substring(0, 100)}...{" "}
+                  <div className="relative h-64 overflow-hidden">
+                    <Image
+                      src={item.imageUrl || "/placeholder.svg"}
+                      alt={item.title}
+                      layout="fill"
+                      objectFit="cover"
+                      className="transition-transform duration-300 ease-in-out group-hover:scale-105"
+                    />
+                    <motion.div
+                      className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 transition-opacity duration-300"
+                      whileHover={{ opacity: 1 }}
+                    >
+                      <p className="text-white text-center px-4">
+                        {item.content}
                       </p>
-                    </CardContent>
-                    <CardFooter>
-                      <Button
-                        variant="outline"
-                        asChild
-                        className="w-full rounded-full hover:bg-[#3b82f6] hover:text-[#0f172a] transition-colors duration-300"
+                    </motion.div>
+                  </div>
+                  <div className="p-6">
+                    <div className="text-sm font-medium text-primary mb-1">
+                      {item.category} - {item.publishedAt}
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">
+                      {item.title}
+                    </h3>
+                    <a
+                      href="https://www.flowersandsaints.com.au"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center"
+                    >
+                      Read More
+                      <svg
+                        className="w-4 h-4 ml-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <Link href={`/news/${item.id}`}>Read More</Link>
-                      </Button>
-                    </CardFooter>
-                  </Card>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                      </svg>
+                    </a>
+                  </div>
                 </motion.div>
               ))}
+            </AnimatePresence>
+          </motion.div>
         </div>
-
-        <motion.div
-          className="mt-12 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Button
-            asChild
-            className="rounded-full px-8 py-6 text-lg font-semibold bg-[#3b82f6] text-[#0f172a] hover:bg-primary/90 transition-all duration-300 hover:shadow-lg"
-          >
-            <Link href="/news">View All News</Link>
-          </Button>
-        </motion.div>
-      </div>
-    </section>
+      </section>
+      {/* <Separator className="my-12" /> */}
+    </>
   );
 }

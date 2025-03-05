@@ -5,7 +5,12 @@ import type { DashboardStats } from "@/types/admin"
 export async function fetchDashboardStats(adminEmail: string): Promise<DashboardStats> {
   try {
     // Get total members count
-    const membersSnapshot = await getDocs(collection(db, "members"))
+    const membersQuery = query(
+      collection(db, "applications"),
+      where("status", "==", "approved"),
+      orderBy("createdAt", "desc")
+    )
+    const membersSnapshot = await getDocs(membersQuery)
     const totalMembers = membersSnapshot.size
 
     // Get pending applications

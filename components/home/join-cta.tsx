@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export default function JoinCTA() {
   return (
-    <section className="bg-[#3b82f6] py-16 text-[#0f172a]">
+    <section className="bg-[#3b82f6] py-16">
       <div className="container">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
