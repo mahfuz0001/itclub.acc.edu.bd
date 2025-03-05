@@ -164,7 +164,7 @@ export default function AdminDashboard() {
                     <div>
                       <div className="font-medium">{app.name}</div>
                       <div className="text-sm text-[#94a3b8]">
-                      {app.department} • {app?.year ? new Date(app.year).toLocaleDateString() : "N/A"}
+                      {app.stream} • {app?.year ? new Date(app.year).toLocaleDateString() : "N/A"}
 
                       </div>
                     </div>

@@ -3,7 +3,7 @@ export interface Panelist {
   name: string;
   position?: string;
   batch?: string;
-  department?: string;
+  stream?: string;
   image?: string;
   bio?: string;
   socialLinks?: {

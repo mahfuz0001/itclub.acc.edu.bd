@@ -29,7 +29,7 @@ interface Member {
   id: string;
   name: string;
   email: string;
-  department: string;
+  stream: string;
   batch: string;
   status: string;
 }
@@ -54,7 +54,7 @@ export default function MembersPage() {
         (member) =>
           member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.stream.toLowerCase().includes(searchTerm.toLowerCase()) ||
           member.batch.toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
@@ -86,7 +86,7 @@ export default function MembersPage() {
             id: doc.id,
             name: doc.data().name,
             email: doc.data().email,
-            department: doc.data().department,
+            stream: doc.data().stream,
             batch: doc.data().year, // Map `year` to `batch`
             status: doc.data().status,
           } as Member)
@@ -186,7 +186,7 @@ export default function MembersPage() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>Department</TableHead>
+            <TableHead>Stream</TableHead>
             <TableHead>Batch</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
@@ -197,7 +197,7 @@ export default function MembersPage() {
             <TableRow key={member.id}>
               <TableCell>{member.name}</TableCell>
               <TableCell>{member.email}</TableCell>
-              <TableCell>{member.department}</TableCell>
+              <TableCell>{member.stream}</TableCell>
               <TableCell>{member.batch}</TableCell>
               <TableCell>{member.status}</TableCell>
               <TableCell>
