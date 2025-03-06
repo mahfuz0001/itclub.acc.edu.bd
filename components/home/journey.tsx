@@ -2,35 +2,8 @@
 
 import { JOURNEY_DATA } from "@/constants/home-content";
 import { Separator } from "../ui/separator";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-  useInView,
-} from "framer-motion";
+import { motion, useScroll, useSpring, useInView } from "framer-motion";
 import { useRef, useState } from "react";
-
-const FlowerIcon = ({ progress }: { progress: number }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className="w-6 h-6"
-    style={{ transform: `scale(${progress})` }}
-  >
-    <path
-      d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-      stroke="currentColor"
-      strokeWidth="2"
-    />
-    <path
-      d="M12 8C12 8 14 10 14 12C14 14 12 16 12 16C12 16 10 14 10 12C10 10 12 8 12 8Z"
-      stroke="currentColor"
-      strokeWidth="2"
-    />
-  </svg>
-);
 
 export default function Journey() {
   const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
@@ -68,21 +41,11 @@ export default function Journey() {
         </motion.div>
 
         <div className="relative">
-          {/* Vertical line */}
+          {/* Vertical Line - Visible only on larger screens */}
           <motion.div
-            className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-primary/20"
+            className="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-primary/20 hidden sm:block"
             style={{ scaleY: scaleX }}
           />
-
-          {/* Flower icon */}
-          {/* <motion.div
-            className="sticky top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 text-primary"
-            style={{ y: useTransform(scrollYProgress, [0, 1], [0, 100]) }}
-          >
-            <FlowerIcon
-              progress={useTransform(scrollYProgress, [0, 1], [0.5, 1]) as any}
-            />
-          </motion.div> */}
 
           {JOURNEY_DATA.milestones.map((event, index) => (
             <TimelineEvent
@@ -119,21 +82,24 @@ function TimelineEvent({
   return (
     <motion.div
       ref={ref}
-      className={`mb-8 flex justify-between items-center w-full ${
-        index % 2 === 0 ? "flex-row-reverse" : ""
+      className={`mb-8 flex flex-col sm:flex-row justify-between items-center w-full ${
+        index % 2 === 0 ? "sm:flex-row-reverse" : ""
       }`}
       initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.8, delay: index * 0.1 }}
     >
-      <div className="md:block md:w-[41.66%] lg:w-5/12" />
-      <div className="z-20">
-        <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full">
-          <div className="w-3 h-3 bg-background rounded-full" />
-        </div>
+      {/* Spacer for larger screens, hidden on mobile */}
+      <div className="hidden sm:block sm:w-[41.66%] lg:w-5/12" />
+
+      {/* Timeline Dot */}
+      <div className="z-20 flex items-center justify-center w-8 h-8 bg-primary rounded-full">
+        <div className="w-3 h-3 bg-background rounded-full" />
       </div>
+
+      {/* Event Content - Full Width on Mobile */}
       <motion.div
-        className="w-5/12 cursor-pointer"
+        className="w-full sm:w-5/12 mt-4 sm:mt-0 cursor-pointer"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={onToggle}
