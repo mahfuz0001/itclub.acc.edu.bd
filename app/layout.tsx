@@ -10,8 +10,9 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "College IT Club",
-  description: "Official website of the College IT Club",
+  title: "ACC IT Club",
+  description:
+    "Adamjee Cantonment College IT Club is a club to inspire students to learn and innovate.",
 };
 
 export default function RootLayout({

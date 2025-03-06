@@ -21,6 +21,24 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CheckCircle, XCircle, AlertCircle, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
 
 interface Application {
   id: string;
@@ -33,7 +51,12 @@ interface Application {
 
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
+  const [filteredApplications, setFilteredApplications] = useState<
+    Application[]
+  >([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const { user } = useAuth();
 
   useEffect(() => {
@@ -41,6 +64,10 @@ export default function ApplicationsPage() {
       fetchApplications();
     }
   }, [user]);
+
+  useEffect(() => {
+    filterApplications();
+  }, [applications, searchTerm, statusFilter]);
 
   const fetchApplications = async () => {
     if (!user) return;
@@ -66,11 +93,34 @@ export default function ApplicationsPage() {
           } as Application)
       );
       setApplications(fetchedApplications);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching applications:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load applications. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
     }
+  };
+
+  const filterApplications = () => {
+    let filtered = applications;
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (app) =>
+          app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          app.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((app) => app.status === statusFilter);
+    }
+
+    setFilteredApplications(filtered);
   };
 
   const handleStatusUpdate = async (
@@ -84,76 +134,147 @@ export default function ApplicationsPage() {
           app.id === id ? { ...app, status: newStatus } : app
         )
       );
+      toast({
+        title: "Success",
+        description: `Application ${
+          newStatus === "approved" ? "approved" : "rejected"
+        } successfully.`,
+      });
     } catch (error) {
       console.error("Error updating application status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update application status. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
-  if (loading) {
-    return <div>Loading applications...</div>;
-  }
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "approved":
+        return (
+          <Badge variant="default" className="bg-green-500">
+            <CheckCircle className="w-3 h-3 mr-1" /> Approved
+          </Badge>
+        );
+      case "rejected":
+        return (
+          <Badge variant="destructive">
+            <XCircle className="w-3 h-3 mr-1" /> Rejected
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline">
+            <AlertCircle className="w-3 h-3 mr-1" /> Pending
+          </Badge>
+        );
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Applications</h1>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Applications</CardTitle>
+        <CardDescription>
+          Manage and review student applications
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="flex-1 flex relative">
+            <Input
+              placeholder="Search by name or email"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Stream</TableHead>
-            <TableHead>Year</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {applications.map((application) => (
-            <TableRow key={application.id}>
-              <TableCell>{application.name}</TableCell>
-              <TableCell>{application.email}</TableCell>
-              <TableCell>{application.stream}</TableCell>
-              <TableCell>{application.year}</TableCell>
-              <TableCell>
-                <Badge
-                  variant={
-                    application.status === "pending"
-                      ? "outline"
-                      : application.status === "approved"
-                      ? "default"
-                      : "destructive"
-                  }
-                >
-                  {application.status}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {application.status === "pending" && (
-                  <>
-                    <Button
-                      onClick={() =>
-                        handleStatusUpdate(application.id, "approved")
-                      }
-                      className="mr-2"
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        handleStatusUpdate(application.id, "rejected")
-                      }
-                      variant="destructive"
-                    >
-                      Reject
-                    </Button>
-                  </>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+        {loading ? (
+          <div className="space-y-4">
+            {[...Array(5)].map((_, index) => (
+              <div key={index} className="flex items-center space-x-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredApplications.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-muted-foreground">No applications found.</p>
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Stream</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredApplications.map((application) => (
+                  <TableRow key={application.id}>
+                    <TableCell className="font-medium">
+                      {application.name}
+                    </TableCell>
+                    <TableCell>{application.email}</TableCell>
+                    <TableCell>{application.stream}</TableCell>
+                    <TableCell>{application.year}</TableCell>
+                    <TableCell>{getStatusBadge(application.status)}</TableCell>
+                    <TableCell>
+                      {application.status === "pending" && (
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              handleStatusUpdate(application.id, "approved")
+                            }
+                            className="bg-green-500 hover:bg-green-600"
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() =>
+                              handleStatusUpdate(application.id, "rejected")
+                            }
+                            variant="destructive"
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

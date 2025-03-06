@@ -65,7 +65,7 @@ export default function Gallery() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl bg-clip-text text-white bg-gradient-to-r from-primary to-secondary">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl bg-clip-text text-foreground bg-gradient-to-r from-primary to-secondary">
               Gallery
             </h2>
             <p className="mx-auto max-w-2xl mt-4 text-xl text-[#94a3b8]">

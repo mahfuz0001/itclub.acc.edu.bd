@@ -63,7 +63,7 @@ export default function Journey() {
             Our Journey
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            The evolution of Flowers & Saints through the years
+            The story of our club from its inception to the present day
           </p>
         </motion.div>
 
@@ -75,14 +75,14 @@ export default function Journey() {
           />
 
           {/* Flower icon */}
-          <motion.div
+          {/* <motion.div
             className="sticky top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 text-primary"
             style={{ y: useTransform(scrollYProgress, [0, 1], [0, 100]) }}
           >
             <FlowerIcon
               progress={useTransform(scrollYProgress, [0, 1], [0.5, 1]) as any}
             />
-          </motion.div>
+          </motion.div> */}
 
           {JOURNEY_DATA.milestones.map((event, index) => (
             <TimelineEvent
@@ -126,7 +126,7 @@ function TimelineEvent({
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.8, delay: index * 0.1 }}
     >
-      <div className="w-5/12" />
+      <div className="md:block md:w-[41.66%] lg:w-5/12" />
       <div className="z-20">
         <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full">
           <div className="w-3 h-3 bg-background rounded-full" />

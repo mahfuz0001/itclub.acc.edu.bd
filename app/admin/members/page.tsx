@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/firebase/auth-provider";
 import {
   collection,
@@ -22,8 +22,25 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, UserPlus } from "lucide-react";
+import { Loader2, Search, UserPlus, Trash2, Edit } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Member {
   id: string;
@@ -36,11 +53,22 @@ interface Member {
 
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
-  const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const { user } = useAuth();
   const { toast } = useToast();
+
+  const filteredMembers = useMemo(() => {
+    return members.filter(
+      (member) =>
+        (member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.stream.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.batch.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (statusFilter === "all" || member.status === statusFilter)
+    );
+  }, [members, searchTerm, statusFilter]);
 
   useEffect(() => {
     if (user) {
@@ -48,37 +76,25 @@ export default function MembersPage() {
     }
   }, [user]);
 
-  useEffect(() => {
-    setFilteredMembers(
-      members.filter(
-        (member) =>
-          member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.stream.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.batch.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [searchTerm, members]);
-
   const fetchMembers = async () => {
     if (!user) return;
-  
+
     try {
       let membersQuery;
-  
+
       if (user.role === "panel" && user.assignedYear) {
         membersQuery = query(
-          collection(db, "applications"), // Fetch from applications
-          where("status", "==", "approved"), // Only approved members
+          collection(db, "applications"),
+          where("status", "==", "approved"),
           where("year", "==", user.assignedYear)
         );
       } else {
         membersQuery = query(
           collection(db, "applications"),
-          where("status", "==", "approved") // Only approved users
+          where("status", "==", "approved")
         );
       }
-  
+
       const querySnapshot = await getDocs(membersQuery);
       const fetchedMembers = querySnapshot.docs.map(
         (doc) =>
@@ -87,14 +103,12 @@ export default function MembersPage() {
             name: doc.data().name,
             email: doc.data().email,
             stream: doc.data().stream,
-            batch: doc.data().year, // Map `year` to `batch`
+            batch: doc.data().year,
             status: doc.data().status,
           } as Member)
       );
-  
+
       setMembers(fetchedMembers);
-      setFilteredMembers(fetchedMembers);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching members:", error);
       toast({
@@ -102,10 +116,10 @@ export default function MembersPage() {
         description: "Failed to fetch members. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setLoading(false);
     }
   };
-  
 
   const updateMemberStatus = async (memberId: string, newStatus: string) => {
     try {
@@ -161,59 +175,107 @@ export default function MembersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Members</h1>
-        {user?.role !== "panel" && (
-          <Button>
-            <UserPlus className="mr-2 h-4 w-4" /> Add New Member
-          </Button>
-        )}
-      </div>
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold flex justify-between items-center">
+          Members
+          {user?.role !== "panel" && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="mr-2 h-4 w-4" /> Add New Member
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Member</DialogTitle>
+                </DialogHeader>
+                {/* Add form fields for new member here */}
+              </DialogContent>
+            </Dialog>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 md:space-x-4">
+          <div className="flex items-center w-full md:w-auto">
+            <Search className="h-5 w-5 text-muted-foreground mr-2" />
+            <Input
+              placeholder="Search members..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full md:w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div className="flex items-center space-x-2">
-        <Search className="h-5 w-5 text-[#94a3b8]" />
-        <Input
-          placeholder="Search members..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Stream</TableHead>
-            <TableHead>Batch</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredMembers.map((member) => (
-            <TableRow key={member.id}>
-              <TableCell>{member.name}</TableCell>
-              <TableCell>{member.email}</TableCell>
-              <TableCell>{member.stream}</TableCell>
-              <TableCell>{member.batch}</TableCell>
-              <TableCell>{member.status}</TableCell>
-              <TableCell>
-                {user?.role !== "panel" && (
-                  <Button
-                    variant="destructive"
-                    onClick={() => deleteMember(member.id)}
-                  >
-                    Delete
-                  </Button>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Stream</TableHead>
+                <TableHead>Batch</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredMembers.map((member) => (
+                <TableRow key={member.id}>
+                  <TableCell className="font-medium">{member.name}</TableCell>
+                  <TableCell>{member.email}</TableCell>
+                  <TableCell>{member.stream}</TableCell>
+                  <TableCell>{member.batch}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        member.status === "active" ? "default" : "secondary"
+                      }
+                    >
+                      {member.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        updateMemberStatus(
+                          member.id,
+                          member.status === "active" ? "inactive" : "active"
+                        )
+                      }
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    {user?.role !== "panel" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteMember(member.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -17,7 +17,7 @@ export default function Marquee() {
           transition={{
             repeat: Number.POSITIVE_INFINITY,
             ease: "linear",
-            duration: 20,
+            duration: 10,
           }}
         >
           {[...Array(4)].map((_, index) => (
@@ -28,7 +28,7 @@ export default function Marquee() {
                   WebkitTextStroke: "1px rgb(156 163 175)", // tailwind gray-400
                 }}
               >
-                ACC IT Club
+                EDUCATION DISCIPLINE MORALITY
               </span>
             </div>
           ))}

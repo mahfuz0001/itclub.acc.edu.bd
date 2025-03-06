@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/firebase/auth-provider";
 import {
@@ -11,6 +13,10 @@ import {
   doc,
 } from "firebase/firestore";
 import { db, storage } from "@/lib/firebase/config";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { PlusCircle, Pencil, Trash2, Loader2, Upload } from "lucide-react";
+
+// UI Components
 import {
   Table,
   TableBody,
@@ -28,10 +34,33 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import Image from "next/image";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/use-toast";
 
 interface Panelist {
   id: string;
@@ -47,23 +76,30 @@ interface Panelist {
   linkedin?: string;
 }
 
+const initialPanelistState = {
+  name: "",
+  email: "",
+  image: "",
+  session: "",
+  rank: "",
+  description: "",
+  contact: "",
+  facebook: "",
+  instagram: "",
+  linkedin: "",
+};
+
 export default function PanelistsPage() {
   const [panelists, setPanelists] = useState<Panelist[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newPanelist, setNewPanelist] = useState({
-    name: "",
-    email: "",
-    image: "",
-    session: "",
-    rank: "",
-    description: "",
-    contact: "",
-    facebook: "",
-    instagram: "",
-    linkedin: "",
-  });
-  const { user } = useAuth();
+  const [formPanelist, setFormPanelist] = useState(initialPanelistState);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchPanelists();
@@ -80,63 +116,127 @@ export default function PanelistsPage() {
           } as Panelist)
       );
       setPanelists(fetchedPanelists);
-      setLoading(false);
     } catch (error) {
       console.error("Error fetching panelists:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load panelists data",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setImageFile(file);
+
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+    } else {
+      setImagePreview(null);
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { id, value } = e.target;
+    setFormPanelist((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const resetForm = () => {
+    setFormPanelist(initialPanelistState);
+    setImageFile(null);
+    setImagePreview(null);
+    setEditingId(null);
   };
 
   const handleAddPanelist = async () => {
     try {
-      let imageUrl = "";
+      setIsSubmitting(true);
+      let imageUrl = formPanelist.image;
 
       if (imageFile) {
-        // const fileName = imageFile.name;
-        // const imagePath = `panelists/${fileName}`;
-        // const storageRef = ref(storage, imagePath);
-
-        // await uploadBytes(storageRef, imageFile);
-        // const imageUrl = await getDownloadURL(storageRef);
-
-        const imagePath = `panelists/${imageFile.name}`;
-        const imageRef = ref(storage, `${imagePath}`);
+        const timestamp = new Date().getTime();
+        const imagePath = `panelists/${timestamp}_${imageFile.name}`;
+        const imageRef = ref(storage, imagePath);
         await uploadBytes(imageRef, imageFile);
-        const imageUrl = await getDownloadURL(imageRef);
+        imageUrl = await getDownloadURL(imageRef);
       }
 
-      const panelistData = { ...newPanelist, image: imageUrl };
+      const panelistData = { ...formPanelist, image: imageUrl };
       const docRef = await addDoc(collection(db, "panelists"), panelistData);
 
-      setPanelists([...panelists, { ...newPanelist, id: docRef.id }]);
-      setNewPanelist({
-        name: "",
-        email: "",
-        image: "",
-        session: "",
-        rank: "",
-        description: "",
-        contact: "",
-        facebook: "",
-        instagram: "",
-        linkedin: "",
+      setPanelists([...panelists, { ...panelistData, id: docRef.id }]);
+      toast({
+        title: "Success",
+        description: "Panelist added successfully",
       });
+
+      resetForm();
+      setOpenDialog(false);
     } catch (error) {
       console.error("Error adding panelist:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add panelist",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleUpdatePanelist = async (
-    id: string,
-    updatedData: Partial<Panelist>
-  ) => {
+  const handleEditPanelist = (panelist: Panelist) => {
+    setFormPanelist({ ...panelist, linkedin: panelist.linkedin || "" });
+    setEditingId(panelist.id);
+    setImagePreview(panelist.image);
+    setOpenDialog(true);
+  };
+
+  const handleUpdatePanelist = async () => {
+    if (!editingId) return;
+
     try {
-      await updateDoc(doc(db, "panelists", id), updatedData);
+      setIsSubmitting(true);
+      let imageUrl = formPanelist.image;
+
+      if (imageFile) {
+        const timestamp = new Date().getTime();
+        const imagePath = `panelists/${timestamp}_${imageFile.name}`;
+        const imageRef = ref(storage, imagePath);
+        await uploadBytes(imageRef, imageFile);
+        imageUrl = await getDownloadURL(imageRef);
+      }
+
+      const updatedData = { ...formPanelist, image: imageUrl };
+      await updateDoc(doc(db, "panelists", editingId), updatedData);
+
       setPanelists(
-        panelists.map((p) => (p.id === id ? { ...p, ...updatedData } : p))
+        panelists.map((p) =>
+          p.id === editingId ? { ...p, ...updatedData } : p
+        )
       );
+
+      toast({
+        title: "Success",
+        description: "Panelist updated successfully",
+      });
+
+      resetForm();
+      setOpenDialog(false);
     } catch (error) {
       console.error("Error updating panelist:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update panelist",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -144,214 +244,335 @@ export default function PanelistsPage() {
     try {
       await deleteDoc(doc(db, "panelists", id));
       setPanelists(panelists.filter((p) => p.id !== id));
+      toast({
+        title: "Success",
+        description: "Panelist deleted successfully",
+      });
     } catch (error) {
       console.error("Error deleting panelist:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete panelist",
+        variant: "destructive",
+      });
     }
   };
 
-  if (loading) {
-    return <div>Loading panelists...</div>;
-  }
-
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Panelists</h1>
+    <div className="container mx-auto py-8 px-4">
+      <Card className="mb-8">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl">Panelists Management</CardTitle>
+              <CardDescription>
+                Add, edit, or remove panelists from the IT club
+              </CardDescription>
+            </div>
+            <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+              <DialogTrigger asChild>
+                <Button onClick={resetForm}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add New Panelist
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingId ? "Edit Panelist" : "Add New Panelist"}
+                  </DialogTitle>
+                </DialogHeader>
 
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button>Add New Panelist</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Panelist</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="name"
-                value={newPanelist.name}
-                onChange={(e) =>
-                  setNewPanelist({ ...newPanelist, name: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
-              </Label>
-              <Input
-                id="email"
-                value={newPanelist.email}
-                onChange={(e) =>
-                  setNewPanelist({ ...newPanelist, email: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="image" className="text-right">
-                Upload Image
-              </Label>
-              <Input
-                type="file"
-                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="session" className="text-right">
-                Session
-              </Label>
-              <Input
-                id="session"
-                value={newPanelist.session}
-                onChange={(e) =>
-                  setNewPanelist({ ...newPanelist, session: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="rank" className="text-right">
-                Rank
-              </Label>
-              <Input
-                id="rank"
-                value={newPanelist.rank}
-                onChange={(e) =>
-                  setNewPanelist({ ...newPanelist, rank: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Textarea
-                id="description"
-                value={newPanelist.description}
-                onChange={(e) =>
-                  setNewPanelist({
-                    ...newPanelist,
-                    description: e.target.value,
-                  })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="contact" className="text-right">
-                Contact Info
-              </Label>
-              <Input
-                id="contact"
-                value={newPanelist.contact}
-                onChange={(e) =>
-                  setNewPanelist({ ...newPanelist, contact: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="facebook" className="text-right">
-                Facebook
-              </Label>
-              <Input
-                id="facebook"
-                value={newPanelist.facebook}
-                onChange={(e) =>
-                  setNewPanelist({ ...newPanelist, facebook: e.target.value })
-                }
-                className="col-span-3"
-              />
+                <Tabs defaultValue="basic" className="mt-4">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                    <TabsTrigger value="details">Details</TabsTrigger>
+                    <TabsTrigger value="social">Social Media</TabsTrigger>
+                  </TabsList>
 
-              <Label htmlFor="instagram" className="text-right">
-                Instagram
-              </Label>
-              <Input
-                id="instagram"
-                value={newPanelist.instagram}
-                onChange={(e) =>
-                  setNewPanelist({ ...newPanelist, instagram: e.target.value })
-                }
-                className="col-span-3"
-              />
+                  <TabsContent value="basic" className="space-y-4 py-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Name</Label>
+                        <Input
+                          id="name"
+                          value={formPanelist.name}
+                          onChange={handleInputChange}
+                          placeholder="Full name"
+                        />
+                      </div>
 
-              <Label htmlFor="linkedin" className="text-right">
-                LinkedIn
-              </Label>
-              <Input
-                id="linkedin"
-                value={newPanelist.linkedin}
-                onChange={(e) =>
-                  setNewPanelist({ ...newPanelist, linkedin: e.target.value })
-                }
-                className="col-span-3"
-              />
-            </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formPanelist.email}
+                          onChange={handleInputChange}
+                          placeholder="Email address"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="image">Profile Image</Label>
+                        <div className="flex items-center gap-4">
+                          {(imagePreview || formPanelist.image) && (
+                            <Avatar className="h-16 w-16 border">
+                              <AvatarImage
+                                src={imagePreview || formPanelist.image}
+                                alt="Preview"
+                              />
+                              <AvatarFallback>
+                                {formPanelist.name
+                                  ?.substring(0, 2)
+                                  .toUpperCase() || "IMG"}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
+                          <div className="flex-1">
+                            <label
+                              htmlFor="image-upload"
+                              className="flex cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium hover:bg-accent hover:text-accent-foreground"
+                            >
+                              <Upload className="h-4 w-4" />
+                              <span>Upload image</span>
+                              <Input
+                                id="image-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="details" className="space-y-4 py-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="session">Session</Label>
+                        <Input
+                          id="session"
+                          value={formPanelist.session}
+                          onChange={handleInputChange}
+                          placeholder="e.g. 2023-2024"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="rank">Rank/Position</Label>
+                        <Input
+                          id="rank"
+                          value={formPanelist.rank}
+                          onChange={handleInputChange}
+                          placeholder="e.g. President"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        value={formPanelist.description}
+                        onChange={handleInputChange}
+                        placeholder="Brief description about the panelist"
+                        rows={4}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="contact">Contact Information</Label>
+                      <Input
+                        id="contact"
+                        value={formPanelist.contact}
+                        onChange={handleInputChange}
+                        placeholder="Phone number or alternative contact"
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="social" className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="facebook">Facebook URL</Label>
+                      <Input
+                        id="facebook"
+                        value={formPanelist.facebook}
+                        onChange={handleInputChange}
+                        placeholder="https://facebook.com/username"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="instagram">Instagram URL</Label>
+                      <Input
+                        id="instagram"
+                        value={formPanelist.instagram}
+                        onChange={handleInputChange}
+                        placeholder="https://instagram.com/username"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="linkedin">LinkedIn URL</Label>
+                      <Input
+                        id="linkedin"
+                        value={formPanelist.linkedin || ""}
+                        onChange={handleInputChange}
+                        placeholder="https://linkedin.com/in/username"
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                <DialogFooter className="mt-6">
+                  <DialogClose asChild>
+                    <Button variant="outline" disabled={isSubmitting}>
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                  <Button
+                    onClick={
+                      editingId ? handleUpdatePanelist : handleAddPanelist
+                    }
+                    disabled={isSubmitting || !formPanelist.name}
+                  >
+                    {isSubmitting && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {editingId ? "Update Panelist" : "Add Panelist"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
-          <Button onClick={handleAddPanelist}>Add Panelist</Button>
-        </DialogContent>
-      </Dialog>
+        </CardHeader>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Position</TableHead>
-            <TableHead>Image</TableHead>
-            <TableHead>Session</TableHead>
-            <TableHead>Rank</TableHead>
-            <TableHead>Contact</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {panelists.map((panelist) => (
-            <TableRow key={panelist.id}>
-              <TableCell>{panelist.name}</TableCell>
-              <TableCell>{panelist.email}</TableCell>
-              <TableCell>
-                <Image
-                  src={panelist.image}
-                  alt={panelist.name}
-                  width={50}
-                  height={50}
-                  className="rounded-full"
-                />
-              </TableCell>
-              <TableCell>{panelist.session}</TableCell>
-              <TableCell>{panelist.rank}</TableCell>
-              <TableCell>{panelist.contact}</TableCell>
-              <TableCell>{panelist.facebook}</TableCell>
-              <TableCell>{panelist.instagram}</TableCell>
-              <TableCell>{panelist.linkedin}</TableCell>
-              <TableCell>
-                <Button
-                  variant="outline"
-                  className="mr-2"
-                  onClick={() =>
-                    handleUpdatePanelist(panelist.id, { name: "Updated Name" })
-                  }
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => handleDeletePanelist(panelist.id)}
-                >
-                  Delete
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+        <CardContent>
+          {loading ? (
+            <div className="space-y-4">
+              {Array(3)
+                .fill(null)
+                .map((_, i) => (
+                  <div key={i} className="flex items-center space-x-4">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-[250px]" />
+                      <Skeleton className="h-4 w-[200px]" />
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ) : panelists.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-muted-foreground mb-4">No panelists found</p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  resetForm();
+                  setOpenDialog(true);
+                }}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add your first panelist
+              </Button>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Panelist</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Session</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {panelists.map((panelist) => (
+                    <TableRow key={panelist.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarImage
+                              src={
+                                panelist.image ||
+                                "/placeholder.svg?height=40&width=40"
+                              }
+                              alt={panelist.name}
+                            />
+                            <AvatarFallback>
+                              {panelist.name.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{panelist.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {panelist.email}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{panelist.rank}</Badge>
+                      </TableCell>
+                      <TableCell>{panelist.session}</TableCell>
+                      <TableCell>{panelist.contact}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditPanelist(panelist)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </Button>
+
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                                <span className="sr-only">Delete</span>
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete Panelist
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete{" "}
+                                  {panelist.name}? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    handleDeletePanelist(panelist.id)
+                                  }
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
