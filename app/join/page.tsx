@@ -2,7 +2,7 @@ import JoinForm from "@/components/join/join-form";
 
 export const metadata = {
   title: "Join the IT Club",
-  description: "Apply to become a member of our college IT club",
+  description: "Apply to become a member of ACC IT club",
 };
 
 export default function JoinPage() {

@@ -56,11 +56,6 @@ export default function Footer() {
             <h3 className="mb-3 text-sm font-semibold">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/" className="text-[#94a3b8] hover:text-[#3b82f6]">
-                  Home
-                </Link>
-              </li>
-              <li>
                 <Link
                   href="/about"
                   className="text-[#94a3b8] hover:text-[#3b82f6]"
@@ -119,10 +114,9 @@ export default function Footer() {
             <h3 className="mb-3 text-sm font-semibold">Contact</h3>
             <address className="not-italic text-sm text-[#94a3b8]">
               <p>{SITE_CONFIG.address.line1}</p>
-              <p>{SITE_CONFIG.address.line2}</p>
+              {/* <p>{SITE_CONFIG.address.line2}</p> */}
               <p>
-                {SITE_CONFIG.address.city}, {SITE_CONFIG.address.state}{" "}
-                {SITE_CONFIG.address.zip}
+                {SITE_CONFIG.address.city} - {SITE_CONFIG.address.zip}
               </p>
               <p className="mt-2">
                 Email:{" "}

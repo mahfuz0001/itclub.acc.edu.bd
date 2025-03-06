@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { motion } from "framer-motion";
-import { MoonIcon, SunIcon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MoonIcon, SunIcon, MenuIcon } from "lucide-react";
 
 const navItems = [
   { name: "About", href: "#about" },
@@ -14,6 +14,7 @@ const navItems = [
 
 export default function Header() {
   const [mounted, setMounted] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
 
   useEffect(() => setMounted(true), []);
@@ -22,26 +23,33 @@ export default function Header() {
     const targetPosition = target.getBoundingClientRect().top + window.scrollY;
     const startPosition = window.scrollY;
     const distance = targetPosition - startPosition;
-    const duration = 800; // Adjust duration for slower or faster scrolling
+    const duration = 800;
     let startTime: number | null = null;
-  
+
     const animation = (currentTime: number) => {
       if (startTime === null) startTime = currentTime;
       const timeElapsed = currentTime - startTime;
       const progress = Math.min(timeElapsed / duration, 1);
-  
-      // Ease in-out function for smooth motion
+
       const easeInOutCubic = (t: number) =>
         t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  
+
       window.scrollTo(0, startPosition + distance * easeInOutCubic(progress));
-  
+
       if (timeElapsed < duration) {
         requestAnimationFrame(animation);
       }
     };
-  
+
     requestAnimationFrame(animation);
+  };
+
+  const handleNavClick = (href: string) => {
+    const target = document.querySelector(href);
+    if (target instanceof HTMLElement) {
+      smoothScrollTo(target);
+      setIsMenuOpen(false);
+    }
   };
 
   return (
@@ -57,36 +65,32 @@ export default function Header() {
       >
         <div className="flex lg:flex-1">
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              const target = document.querySelector("#home");
-              if (target instanceof HTMLElement) {
-                smoothScrollTo(target);
-              }
-            }}
+            onClick={() => handleNavClick("#home")}
             className="-m-1.5 p-1.5 text-2xl font-bold leading-6 text-primary"
           >
             ACCITC
           </button>
         </div>
-        <div className="flex gap-x-12">
+        <div className="flex lg:hidden">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="text-foreground hover:text-primary transition-colors"
+          >
+            <MenuIcon className="h-6 w-6" />
+          </button>
+        </div>
+        <div className="hidden lg:flex lg:gap-x-12">
           {navItems.map((item) => (
             <button
               key={item.href}
-              onClick={(e) => {
-                e.preventDefault();
-                const target = document.querySelector(item.href);
-                if (target instanceof HTMLElement) {
-                  smoothScrollTo(target);
-                }
-              }}
+              onClick={() => handleNavClick(item.href)}
               className="text-sm font-semibold leading-6 text-foreground hover:text-primary transition-colors"
             >
               {item.name}
             </button>
           ))}
         </div>
-        <div className="flex flex-1 justify-end">
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -101,6 +105,48 @@ export default function Header() {
           )}
         </div>
       </nav>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="lg:hidden"
+          >
+            <div className="space-y-1 px-6 pb-3 pt-2">
+              {navItems.map((item) => (
+                <button
+                  key={item.href}
+                  onClick={() => handleNavClick(item.href)}
+                  className="block rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-primary/10 hover:text-primary w-full text-left"
+                >
+                  {item.name}
+                </button>
+              ))}
+              {mounted && (
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="flex items-center rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-primary/10 hover:text-primary w-full"
+                >
+                  {theme === "dark" ? (
+                    <>
+                      <SunIcon className="h-5 w-5 mr-2" />
+                      Light Mode
+                    </>
+                  ) : (
+                    <>
+                      <MoonIcon className="h-5 w-5 mr-2" />
+                      Dark Mode
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.header>
   );
 }
