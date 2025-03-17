@@ -57,7 +57,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="/about"
+                  href="/#about"
                   className="text-[#94a3b8] hover:text-[#3b82f6]"
                 >
                   About Us
@@ -65,7 +65,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/news"
+                  href="/#news"
                   className="text-[#94a3b8] hover:text-[#3b82f6]"
                 >
                   News
@@ -73,7 +73,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/gallery"
+                  href="/#gallery"
                   className="text-[#94a3b8] hover:text-[#3b82f6]"
                 >
                   Gallery
@@ -94,7 +94,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/events"
+                  href="/#events"
                   className="text-[#94a3b8] hover:text-[#3b82f6]"
                 >
                   Events
@@ -102,7 +102,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/projects"
+                  href="/#projects"
                   className="text-[#94a3b8] hover:text-[#3b82f6]"
                 >
                   Projects

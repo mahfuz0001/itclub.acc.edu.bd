@@ -104,7 +104,7 @@ export default function AboutUs() {
                 ))}
               </div>
               <Button asChild size="lg" className="rounded-full">
-                <Link href="/about">Learn More</Link>
+                <Link href="/#about">Learn More</Link>
               </Button>
             </motion.div>
           </div>

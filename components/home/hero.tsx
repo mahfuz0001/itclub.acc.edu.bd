@@ -29,8 +29,8 @@ export default function Hero() {
               </p>
 
               <Link
-                href="#"
-                title=""
+                href="/join"
+                title="Join Us"
                 className="inline-flex items-center px-6 py-4 mt-8 font-semibold text-black transition-all duration-200 bg-blue-600 rounded-full lg:mt-16 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
                 role="button"
               >
@@ -54,10 +54,10 @@ export default function Hero() {
 
             <div>
               <Image
-                className="w-full"
+                className="w-full h-[500px] object-cover object-bottom rounded-lg"
                 width={500}
                 height={500}
-                src="/assets/acc_view.png"
+                src="/assets/green_acc.jpg"
                 alt=""
               />
             </div>
