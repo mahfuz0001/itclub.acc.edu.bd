@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Facebook, Linkedin, Twitter, Mail } from "lucide-react";
+import { Facebook, Linkedin, Twitter, Mail, Instagram } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
@@ -15,12 +15,11 @@ interface Panelist {
   name: string;
   position: string;
   image: string;
-  socialLinks: {
-    facebook?: string;
-    linkedin?: string;
-    twitter?: string;
-  };
+  facebook: string;
+  instagram: string;
+  linkedin: string;
   description: string;
+  email: string;
   session: string;
   rank: string;
   contact: string;
@@ -171,37 +170,37 @@ export default function CurrentPanelists() {
                       </div>
 
                       <div className="flex justify-center space-x-2 mt-2">
-                        {panelist.socialLinks?.linkedin && (
+                        {panelist.facebook && (
                           <a
-                            href={panelist.socialLinks.linkedin}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-full p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200"
-                            aria-label="LinkedIn"
-                          >
-                            <Linkedin className="h-4 w-4" />
-                          </a>
-                        )}
-                        {panelist.socialLinks?.twitter && (
-                          <a
-                            href={panelist.socialLinks.twitter}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-full p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200"
-                            aria-label="Twitter"
-                          >
-                            <Twitter className="h-4 w-4" />
-                          </a>
-                        )}
-                        {panelist.socialLinks?.facebook && (
-                          <a
-                            href={panelist.socialLinks.facebook}
+                            href={panelist.facebook}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="rounded-full p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200"
                             aria-label="Facebook"
                           >
                             <Facebook className="h-4 w-4" />
+                          </a>
+                        )}
+                        {panelist.instagram && (
+                          <a
+                            href={panelist.instagram}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-full p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200"
+                            aria-label="Instagram"
+                          >
+                            <Instagram className="h-4 w-4" />
+                          </a>
+                        )}
+                        {panelist.linkedin && (
+                          <a
+                            href={panelist.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-full p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200"
+                            aria-label="LinkedIn"
+                          >
+                            <Linkedin className="h-4 w-4" />
                           </a>
                         )}
                         {panelist.contact && (
