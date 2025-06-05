@@ -61,6 +61,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
+import Cropper, { Area } from "react-easy-crop";
+import Slider from "@mui/material/Slider";
+import getCroppedImg from "@/lib/cropImage"; // helper function defined below
+import Image from "next/image";
 
 interface Panelist {
   id: string;
@@ -98,6 +102,10 @@ export default function PanelistsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
 
   const { user } = useAuth();
 
@@ -130,13 +138,11 @@ export default function PanelistsPage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setImageFile(file);
-
     if (file) {
+      setImageFile(file);
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
-    } else {
-      setImagePreview(null);
+      setIsCropping(true);
     }
   };
 
@@ -159,11 +165,24 @@ export default function PanelistsPage() {
       setIsSubmitting(true);
       let imageUrl = formPanelist.image;
 
-      if (imageFile) {
+      if (imagePreview && croppedAreaPixels) {
+        const croppedImage = await getCroppedImg(
+          imagePreview,
+          croppedAreaPixels
+        );
+        const croppedFile = await fetch(croppedImage)
+          .then((r) => r.blob())
+          .then(
+            (blob) =>
+              new File([blob], "cropped.jpg", {
+                type: "image/jpeg",
+              })
+          );
+
         const timestamp = new Date().getTime();
-        const imagePath = `panelists/${timestamp}_${imageFile.name}`;
+        const imagePath = `panelists/${timestamp}_${croppedFile.name}`;
         const imageRef = ref(storage, imagePath);
-        await uploadBytes(imageRef, imageFile);
+        await uploadBytes(imageRef, croppedFile);
         imageUrl = await getDownloadURL(imageRef);
       }
 
@@ -190,13 +209,6 @@ export default function PanelistsPage() {
     }
   };
 
-  const handleEditPanelist = (panelist: Panelist) => {
-    setFormPanelist({ ...panelist, linkedin: panelist.linkedin || "" });
-    setEditingId(panelist.id);
-    setImagePreview(panelist.image);
-    setOpenDialog(true);
-  };
-
   const handleUpdatePanelist = async () => {
     if (!editingId) return;
 
@@ -204,11 +216,24 @@ export default function PanelistsPage() {
       setIsSubmitting(true);
       let imageUrl = formPanelist.image;
 
-      if (imageFile) {
+      if (imagePreview && croppedAreaPixels) {
+        const croppedImage = await getCroppedImg(
+          imagePreview,
+          croppedAreaPixels
+        );
+        const croppedFile = await fetch(croppedImage)
+          .then((r) => r.blob())
+          .then(
+            (blob) =>
+              new File([blob], "cropped.jpg", {
+                type: "image/jpeg",
+              })
+          );
+
         const timestamp = new Date().getTime();
-        const imagePath = `panelists/${timestamp}_${imageFile.name}`;
+        const imagePath = `panelists/${timestamp}_${croppedFile.name}`;
         const imageRef = ref(storage, imagePath);
-        await uploadBytes(imageRef, imageFile);
+        await uploadBytes(imageRef, croppedFile);
         imageUrl = await getDownloadURL(imageRef);
       }
 
@@ -238,6 +263,13 @@ export default function PanelistsPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEditPanelist = (panelist: Panelist) => {
+    setFormPanelist({ ...panelist, linkedin: panelist.linkedin || "" });
+    setEditingId(panelist.id);
+    setImagePreview(panelist.image);
+    setOpenDialog(true);
   };
 
   const handleDeletePanelist = async (id: string) => {
@@ -318,9 +350,12 @@ export default function PanelistsPage() {
                         <div className="flex items-center gap-4">
                           {(imagePreview || formPanelist.image) && (
                             <Avatar className="h-16 w-16 border">
-                              <AvatarImage
+                              <Image
                                 src={imagePreview || formPanelist.image}
                                 alt="Preview"
+                                height={64}
+                                width={64}
+                                className="object-cover"
                               />
                               <AvatarFallback>
                                 {formPanelist.name
@@ -346,6 +381,55 @@ export default function PanelistsPage() {
                             </label>
                           </div>
                         </div>
+                        {isCropping && imagePreview && (
+                          <div className="relative w-full h-64 bg-gray-900">
+                            <Cropper
+                              image={imagePreview}
+                              crop={crop}
+                              zoom={zoom}
+                              aspect={1}
+                              onCropChange={setCrop}
+                              onZoomChange={setZoom}
+                              onCropComplete={(_, croppedAreaPixels) =>
+                                setCroppedAreaPixels(croppedAreaPixels)
+                              }
+                            />
+                            <div className="px-4 py-2 bg-white">
+                              <Slider
+                                value={zoom}
+                                min={1}
+                                max={3}
+                                step={0.1}
+                                onChange={(_, value) =>
+                                  setZoom(value as number)
+                                }
+                              />
+                              <Button
+                                onClick={async () => {
+                                  const croppedImage = await getCroppedImg(
+                                    imagePreview,
+                                    croppedAreaPixels
+                                  );
+                                  setImagePreview(croppedImage);
+                                  setImageFile(
+                                    await fetch(croppedImage)
+                                      .then((r) => r.blob())
+                                      .then(
+                                        (blob) =>
+                                          new File([blob], "cropped.jpg", {
+                                            type: "image/jpeg",
+                                          })
+                                      )
+                                  );
+                                  setIsCropping(false);
+                                }}
+                                className="mt-2"
+                              >
+                                Confirm Crop
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </TabsContent>
