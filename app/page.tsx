@@ -74,9 +74,9 @@ export default function Home() {
         <Hero />
         <AboutUs />
         <Journey />
-        <Gallery />
         <Marquee />
         <CurrentPanelists />
+        <Gallery />
         <RecentNews />
         {/* <CurrentMembers /> */}
         {/* <JoinCTA /> */}
