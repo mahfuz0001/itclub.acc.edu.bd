@@ -35,9 +35,23 @@ export default function PublicPanelistsPage() {
         id: doc.id,
         ...doc.data(),
       })) as Panelist[];
-      setPanelists(fetched);
+
+      // Sort by ID (or whatever logic ensures order)
+      const sorted = [...fetched].sort((a, b) => a.id.localeCompare(b.id));
+
+      // Assign custom IDs
+      const updated = sorted.map((panelist, index) => {
+        if (index < 3) {
+          return { ...panelist, id: `admin-${index + 1}` };
+        } else {
+          return { ...panelist, id: `panelist-${index - 2}` };
+        }
+      });
+
+      setPanelists(updated);
       setLoading(false);
     };
+
     fetchPanelists();
   }, []);
 

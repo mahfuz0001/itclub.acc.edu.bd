@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,7 @@ import { Facebook, Linkedin, Twitter, Mail, Instagram } from "lucide-react";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 interface Panelist {
   id: string;
@@ -29,6 +31,7 @@ export default function CurrentPanelists() {
   const [panelists, setPanelists] = useState<Panelist[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchPanelists = async () => {
@@ -41,7 +44,21 @@ export default function CurrentPanelists() {
         if (!Array.isArray(data)) {
           throw new Error("Invalid API response: Expected an array");
         }
-        setPanelists(data);
+
+        // Sort and relabel as admin/panelist
+        const sorted = [...data].sort((a: Panelist, b: Panelist) =>
+          a.id.localeCompare(b.id)
+        );
+
+        const relabeled = sorted.map((panelist, index) => {
+          if (index < 3) {
+            return { ...panelist, id: `admin-${index + 1}` };
+          } else {
+            return { ...panelist, id: `panelist-${index - 2}` };
+          }
+        });
+
+        setPanelists(relabeled.slice(0, 3)); // Only show first 3
       } catch (error) {
         console.error("Error fetching panelists:", error);
         toast({
@@ -84,17 +101,17 @@ export default function CurrentPanelists() {
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
             Our{" "}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70">
-              Panelists
+              Admin Panelists
             </span>
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Meet our dedicated team of experts who lead the IT club
+            Meet our top 3 current admin panelists
           </p>
         </motion.div>
 
         {loading ? (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {Array(6)
+            {Array(3)
               .fill(null)
               .map((_, i) => (
                 <Card
@@ -124,7 +141,7 @@ export default function CurrentPanelists() {
             initial="hidden"
             animate="show"
           >
-            {(panelists || []).map((panelist) => (
+            {panelists.map((panelist) => (
               <motion.div key={panelist.id} variants={item}>
                 <Card className="bg-card/50 backdrop-blur-sm border border-border/50 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group">
                   <CardContent className="p-6">
@@ -176,7 +193,6 @@ export default function CurrentPanelists() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="rounded-full p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200"
-                            aria-label="Facebook"
                           >
                             <Facebook className="h-4 w-4" />
                           </a>
@@ -187,7 +203,6 @@ export default function CurrentPanelists() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="rounded-full p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200"
-                            aria-label="Instagram"
                           >
                             <Instagram className="h-4 w-4" />
                           </a>
@@ -198,7 +213,6 @@ export default function CurrentPanelists() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="rounded-full p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200"
-                            aria-label="LinkedIn"
                           >
                             <Linkedin className="h-4 w-4" />
                           </a>
@@ -207,7 +221,6 @@ export default function CurrentPanelists() {
                           <a
                             href={`mailto:${panelist.contact}`}
                             className="rounded-full p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors duration-200"
-                            aria-label="Email"
                           >
                             <Mail className="h-4 w-4" />
                           </a>
@@ -220,6 +233,13 @@ export default function CurrentPanelists() {
             ))}
           </motion.div>
         )}
+
+        {/* CTA to view all panelists */}
+        <div className="flex justify-center mt-12">
+          <Button onClick={() => router.push("/panelists")} size="lg">
+            View All Panelists
+          </Button>
+        </div>
       </div>
       <Separator className="my-12 max-w-6xl mx-auto" />
     </section>
