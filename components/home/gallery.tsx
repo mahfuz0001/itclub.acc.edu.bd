@@ -164,7 +164,7 @@ export default function Gallery() {
           >
             <Button
               asChild
-              className="rounded-full px-8 py-6 text-lg font-semibold bg-[#3b82f6] text-[#0f172a] hover:bg-primary/90 transition-all duration-300 hover:shadow-lg"
+              className="rounded-full px-8 py-6 text-lg font-semibold text-[#0f172a] hover:bg-primary/90 transition-all duration-300 hover:shadow-lg"
             >
               <Link href="/gallery">View Full Gallery</Link>
             </Button>

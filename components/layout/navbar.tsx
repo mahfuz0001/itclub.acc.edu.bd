@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { MoonIcon, SunIcon, MenuIcon } from "lucide-react";
+import Image from "next/image";
 
 const navItems = [
   { name: "About", href: "#about" },
@@ -64,12 +65,19 @@ export default function Header() {
         aria-label="Global"
       >
         <div className="flex lg:flex-1">
-          <button
+          {/* <button
             onClick={() => handleNavClick("#home")}
             className="-m-1.5 p-1.5 text-2xl font-bold leading-6 text-primary"
           >
             ACCITC
-          </button>
+          </button> */}
+          <Image
+            src="/Logo.png"
+            alt="ACCITC Logo"
+            width={60}
+            height={60}
+            className="h-12 w-12 rounded-full"
+          />
         </div>
         <div className="flex lg:hidden">
           <button

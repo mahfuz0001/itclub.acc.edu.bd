@@ -18,7 +18,7 @@ export default function Footer() {
                 href={SOCIAL_LINKS.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#94a3b8] hover:text-[#3b82f6]"
+                className="text-[#94a3b8] hover:text-[#74bf45]"
               >
                 <Facebook className="h-5 w-5" />
                 <span className="sr-only">Facebook</span>
@@ -27,7 +27,7 @@ export default function Footer() {
                 href={SOCIAL_LINKS.twitter}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#94a3b8] hover:text-[#3b82f6]"
+                className="text-[#94a3b8] hover:text-[#74bf45]"
               >
                 <Twitter className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
@@ -36,7 +36,7 @@ export default function Footer() {
                 href={SOCIAL_LINKS.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#94a3b8] hover:text-[#3b82f6]"
+                className="text-[#94a3b8] hover:text-[#74bf45]"
               >
                 <Instagram className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
@@ -45,7 +45,7 @@ export default function Footer() {
                 href={SOCIAL_LINKS.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#94a3b8] hover:text-[#3b82f6]"
+                className="text-[#94a3b8] hover:text-[#74bf45]"
               >
                 <Linkedin className="h-5 w-5" />
                 <span className="sr-only">LinkedIn</span>
@@ -58,7 +58,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#about"
-                  className="text-[#94a3b8] hover:text-[#3b82f6]"
+                  className="text-[#94a3b8] hover:text-[#74bf45]"
                 >
                   About Us
                 </Link>
@@ -66,7 +66,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#news"
-                  className="text-[#94a3b8] hover:text-[#3b82f6]"
+                  className="text-[#94a3b8] hover:text-[#74bf45]"
                 >
                   News
                 </Link>
@@ -74,7 +74,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#gallery"
-                  className="text-[#94a3b8] hover:text-[#3b82f6]"
+                  className="text-[#94a3b8] hover:text-[#74bf45]"
                 >
                   Gallery
                 </Link>
@@ -87,7 +87,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/join"
-                  className="text-[#94a3b8] hover:text-[#3b82f6]"
+                  className="text-[#94a3b8] hover:text-[#74bf45]"
                 >
                   Join the Club
                 </Link>
@@ -95,7 +95,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#events"
-                  className="text-[#94a3b8] hover:text-[#3b82f6]"
+                  className="text-[#94a3b8] hover:text-[#74bf45]"
                 >
                   Events
                 </Link>
@@ -103,7 +103,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/#projects"
-                  className="text-[#94a3b8] hover:text-[#3b82f6]"
+                  className="text-[#94a3b8] hover:text-[#74bf45]"
                 >
                   Projects
                 </Link>
@@ -122,7 +122,7 @@ export default function Footer() {
                 Email:{" "}
                 <a
                   href={`mailto:${SITE_CONFIG.email}`}
-                  className="hover:text-[#3b82f6]"
+                  className="hover:text-[#74bf45]"
                 >
                   {SITE_CONFIG.email}
                 </a>
@@ -131,7 +131,7 @@ export default function Footer() {
                 Phone:{" "}
                 <a
                   href={`tel:${SITE_CONFIG.phone}`}
-                  className="hover:text-[#3b82f6]"
+                  className="hover:text-[#74bf45]"
                 >
                   {SITE_CONFIG.phone}
                 </a>

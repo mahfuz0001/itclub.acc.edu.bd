@@ -16,12 +16,12 @@ export default function Hero() {
         <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-2">
             <div>
-              <p className="text-base font-semibold tracking-wider text-blue-600 uppercase">
+              <p className="text-base font-semibold tracking-wider text-[#74bf45] uppercase">
                 Welcome to ACC ITC
               </p>
               <h1 className="mt-4 text-4xl font-bold lg:mt-8 sm:text-6xl xl:text-8xl">
                 Adamjee Cantonment College
-                <span className="block text-blue-600">IT Club</span>
+                <span className="block text-[#74bf45]">IT Club</span>
               </h1>
               <p className="mt-4 text-base lg:mt-8 sm:text-xl">
                 Inspiring and empowering students to learn and grow through
@@ -31,7 +31,7 @@ export default function Hero() {
               <Link
                 href="/join"
                 title="Join Us"
-                className="inline-flex items-center px-6 py-4 mt-8 font-semibold text-black transition-all duration-200 bg-blue-600 rounded-full lg:mt-16 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white"
+                className="inline-flex items-center px-6 py-4 mt-8 font-semibold text-black transition-all duration-200 bg-[#74bf45] rounded-full lg:mt-16 hover:bg-[#75c445] focus:outline-none focus:ring-2 focus:ring-[#74bf45] focus:ring-offset-2 focus:ring-offset-white"
                 role="button"
               >
                 Join Us
