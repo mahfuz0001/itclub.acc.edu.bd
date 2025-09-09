@@ -1,5 +1,10 @@
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/itclubaccedu/public_html
-    - /bin/rm -rf $DEPLOYPATH/*
-    - /bin/cp -R out/* $DEPLOYPATH/
+    - export APPROOT=/home/itclubaccedu/repositories/accitc
+    - cd $APPROOT
+    # Install dependencies
+    - /opt/cpanel/ea-nodejs18/bin/npm install --omit=dev
+    # Build Next.js app
+    - /opt/cpanel/ea-nodejs18/bin/npm run build
+    # Restart Node.js app so new build takes effect
+    - touch /home/itclubaccedu/tmp/restart.txt
