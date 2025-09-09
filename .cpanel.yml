@@ -2,9 +2,9 @@ deployment:
   tasks:
     - export APPROOT=/home/itclubaccedu/repositories/accitc
     - cd $APPROOT
-    # Install dependencies
-    - /opt/cpanel/ea-nodejs18/bin/npm install --omit=dev
+    # Install dependencies ignoring peer deps
+    - /opt/cpanel/ea-nodejs18/bin/npm install --legacy-peer-deps
     # Build Next.js app
     - /opt/cpanel/ea-nodejs18/bin/npm run build
-    # Restart Node.js app so new build takes effect
+    # Restart Node.js app
     - touch /home/itclubaccedu/tmp/restart.txt
