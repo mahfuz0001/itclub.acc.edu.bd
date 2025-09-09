@@ -1,8 +1,5 @@
-​deployment:
-tasks:
-- export DEPLOYPATH=/repositories/itclub.acc.edu.bd
-- /bin/cp -R . $DEPLOYPATH
-- cd $DEPLOYPATH
-- /usr/local/bin/npm install
-- /usr/local/bin/npm run build
-- /usr/local/bin/npm start
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/itclubaccedu/public_html
+    - /bin/rm -rf $DEPLOYPATH/*
+    - /bin/cp -R out/* $DEPLOYPATH/
