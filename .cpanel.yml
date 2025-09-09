@@ -2,9 +2,13 @@ deployment:
   tasks:
     - export APPROOT=/home/itclubaccedu/repositories/accitc
     - cd $APPROOT
-    # Install dependencies ignoring peer deps
-    - /opt/cpanel/ea-nodejs18/bin/npm install --legacy-peer-deps
+    # Clear npm cache to prevent EEXIST errors
+    - /opt/cpanel/ea-nodejs20/bin/npm cache clean --force
+    # Remove existing node_modules and lock file for a fresh install
+    - rm -rf node_modules package-lock.json
+    # Install dependencies ignoring peer dependency conflicts
+    - /opt/cpanel/ea-nodejs20/bin/npm install --legacy-peer-deps
     # Build Next.js app
-    - /opt/cpanel/ea-nodejs18/bin/npm run build
+    - /opt/cpanel/ea-nodejs20/bin/npm run build
     # Restart Node.js app
     - touch /home/itclubaccedu/tmp/restart.txt
