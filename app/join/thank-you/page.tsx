@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, MessageCircle } from "lucide-react";
 
 export const metadata = {
   title: "Application Submitted | IT Club",
@@ -22,9 +22,20 @@ export default function ThankYouPage() {
           application and will review it shortly. You'll receive an email
           notification about the status of your application.
         </p>
-        <div className="space-y-2">
+        <div className="space-y-3 flex flex-col sm:space-y-0 sm:flex-row sm:justify-center sm:gap-4">
           <Button asChild>
             <Link href="/">Return to Home</Link>
+          </Button>
+          <Button asChild variant="secondary" className="ml-3">
+            <Link
+              href="https://m.me/j/AbYTzMWlTECfzMmO/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Join Official Messenger Group
+            </Link>
           </Button>
         </div>
       </div>

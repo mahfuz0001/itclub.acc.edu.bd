@@ -171,7 +171,7 @@ export default function Gallery() {
           </motion.div>
         </div>
       </section>
-      <Separator className="my-12" />
+      {/* <Separator className="my-12" /> */}
     </>
   );
 }

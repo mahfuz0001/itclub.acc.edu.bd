@@ -69,7 +69,7 @@ export default function Home() {
   ];
   return (
     <div className="relative flex min-h-screen flex-col px-7">
-      {/* <Navbar />
+      <Navbar />
       <main className="flex-1">
         <Hero />
         <AboutUs />
@@ -77,13 +77,13 @@ export default function Home() {
         <Marquee />
         <CurrentPanelists />
         <Gallery />
-        <RecentNews />
-        <CurrentMembers />
+        {/* <RecentNews /> */}
+        {/* <CurrentMembers /> */}
         <JoinCTA />
         <Footer />
         <FloatingDock items={dockItems} />
-      </main> */}
-      <div className="flex items-center justify-center min-h-screen p-4">
+      </main>
+      {/* <div className="flex items-center justify-center min-h-screen p-4">
         <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl p-6 md:p-8 transform transition-transform duration-300 ease-in-out hover:scale-105">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-gray-200 mb-2 font-sans uppercase flex flex-col items-center sm:flex-row sm:justify-center">
@@ -100,7 +100,7 @@ export default function Home() {
             </h1>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

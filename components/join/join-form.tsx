@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -24,43 +25,75 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { submitJoinApplication } from "@/lib/firebase/join";
-import { useToast } from "@/components/ui/use-toast";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { STREAM_SECTIONS, STREAMS, YEARS } from "@/constants/form-options";
+import { submitJoinApplication } from "@/lib/firebase/join";
+import { useToast } from "@/components/ui/use-toast";
+
+const techSkillOptions = [
+  "Programming",
+  "Web Development",
+  "UI/UX",
+  "Web Designing",
+  "PowerPoint Presentation",
+  "Graphics Designing",
+  "Gaming",
+  "Illustration",
+  "Animation",
+  "Olympiad",
+  "Videography",
+  "Video Editing",
+  "VFX",
+  "3D Modeling",
+  "Photography",
+  "Photo Editing",
+  "Beginner",
+];
+
+const leadershipOptions = [
+  "Event Management",
+  "Hosting",
+  "Event Organizing",
+  "Public Speaking",
+  "Presentation",
+  "Leading",
+];
+
+const learningOptions = [
+  "Programming",
+  "Graphics Designing",
+  "Web Development",
+  "Presentation",
+  "Olympiad",
+  "Video Editing",
+];
 
 const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  phone: z.string().min(10, {
-    message: "Please enter a valid phone number.",
-  }),
-  stream: z.string({
-    required_error: "Please select your stream.",
-  }),
-  section: z.string({
-    required_error: "Please select your section.",
-  }),
-  year: z.string({
-    required_error: "Please select your academic year.",
-  }),
-  rollNumber: z.string().min(1, {
-    message: "Id number is required.",
-  }),
-  skills: z.string().min(1, {
-    message: "Please list your skills.",
-  }),
-  experience: z.string().optional(),
-  reason: z.string().min(10, {
-    message:
-      "Please tell us why you want to join the club (min 10 characters).",
-  }),
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Enter a valid email address." }),
+  phone: z.string().min(10, { message: "Enter a valid phone number." }),
+  facebook: z.string().url().optional(),
+  address: z.string().min(5, { message: "Enter your present address." }),
+  previousSchool: z.string().optional(),
+  stream: z.string(),
+  section: z.string(),
+  year: z.string(),
+  rollNumber: z.string().min(1, { message: "ID number is required." }),
+  techSkills: z
+    .array(z.string())
+    .min(1, { message: "Select at least one skill." }),
+  techSkillsOther: z.string().optional(),
+  leadershipSkills: z.array(z.string()).optional(),
+  leadershipOther: z.string().optional(),
+  thingsToLearn: z.array(z.string()).optional(),
+  achievements: z.string().optional(),
+  portfolio: z.string().url().optional(),
+  github: z.string().url().optional(),
+  freelancing: z.string().url().optional(),
+  reason: z
+    .string()
+    .min(10, { message: "Tell us why you want to join (min 10 chars)." }),
   agreeToTerms: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms and conditions.",
   }),
@@ -71,19 +104,18 @@ type FormValues = z.infer<typeof formSchema>;
 export default function JoinForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedStream, setSelectedStream] = useState<
+    keyof typeof STREAM_SECTIONS | null
+  >(null);
   const router = useRouter();
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      rollNumber: "",
-      skills: "",
-      experience: "",
-      reason: "",
+      techSkills: [],
+      leadershipSkills: [],
+      thingsToLearn: [],
       agreeToTerms: false,
     },
   });
@@ -92,37 +124,31 @@ export default function JoinForm() {
     try {
       setIsSubmitting(true);
       setError(null);
-
       await submitJoinApplication(values);
-
       toast({
         title: "Application Submitted",
-        description:
-          "Your application has been submitted successfully. We'll get back to you soon!",
+        description: "We'll get back to you soon!",
       });
-
       form.reset();
-
       router.push("/join/thank-you");
     } catch (err) {
       console.error("Error submitting application:", err);
       setError(
         "There was an error submitting your application. Please try again later."
       );
-
       toast({
         variant: "destructive",
         title: "Submission Failed",
-        description:
-          "There was a problem submitting your application. Please try again.",
+        description: "Try again later.",
       });
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  const [selectedStream, setSelectedStream] = useState<keyof typeof STREAM_SECTIONS | null>(null);
-  const filteredSections = selectedStream ? STREAM_SECTIONS[selectedStream] : [];
+  const filteredSections = selectedStream
+    ? STREAM_SECTIONS[selectedStream]
+    : [];
 
   return (
     <div className="rounded-lg border bg-card p-6 shadow-sm">
@@ -136,10 +162,11 @@ export default function JoinForm() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Basic Info */}
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField
-              control={form.control}
               name="name"
+              control={form.control}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
@@ -150,17 +177,16 @@ export default function JoinForm() {
                 </FormItem>
               )}
             />
-
             <FormField
-              control={form.control}
               name="email"
+              control={form.control}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="john.doe@example.com"
                       type="email"
+                      placeholder="john@example.com"
                       {...field}
                     />
                   </FormControl>
@@ -172,114 +198,86 @@ export default function JoinForm() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField
-              control={form.control}
               name="phone"
+              control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="1234567890" {...field} />
+                    <Input placeholder="01XXXXXXXXX" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <FormField
+              name="facebook"
               control={form.control}
-              name="rollNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>ID Number</FormLabel>
+                  <FormLabel>Facebook Profile Link</FormLabel>
                   <FormControl>
-                    <Input placeholder="240387" {...field} />
+                    <Input
+                      placeholder="https://facebook.com/your.profile"
+                      {...field}
+                    />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField
-                  control={form.control}
-                  name="stream"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Stream</FormLabel>
-                      <Select
-                        onValueChange={(value) => {
-                          const streamValue = value as keyof typeof STREAM_SECTIONS;
-                          setSelectedStream(streamValue);
-                          field.onChange(streamValue);
-                          form.setValue("section", ""); // Reset section on stream change
-                        }}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your stream" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Object.keys(STREAM_SECTIONS).map((stream) => (
-                            <SelectItem key={stream} value={stream}>
-                              {stream.charAt(0).toUpperCase() + stream.slice(1)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <FormField
+            name="address"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Present Address</FormLabel>
+                <FormControl>
+                  <Input placeholder="Your current address" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-                {selectedStream && (
-                  <FormField
-                    control={form.control}
-                    name="section"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Section</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select your section" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {filteredSections.map((section) => (
-                              <SelectItem key={section.value} value={section.value}>
-                                {section.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+          <FormField
+            name="previousSchool"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Previous School</FormLabel>
+                <FormControl>
+                  <Input placeholder="Your previous school" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
 
+          {/* Academic Info */}
+          <div className="grid gap-4 sm:grid-cols-3">
             <FormField
+              name="stream"
               control={form.control}
-              name="year"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Academic Year</FormLabel>
+                  <FormLabel>Stream</FormLabel>
                   <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    onValueChange={(val) => {
+                      setSelectedStream(val as keyof typeof STREAM_SECTIONS);
+                      field.onChange(val);
+                      form.setValue("section", "");
+                    }}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select your year" />
+                        <SelectValue placeholder="Select stream" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {YEARS.map((year) => (
-                        <SelectItem key={year.value} value={year.value}>
-                          {year.label}
+                      {Object.keys(STREAM_SECTIONS).map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -288,60 +286,205 @@ export default function JoinForm() {
                 </FormItem>
               )}
             />
+
+            {selectedStream && (
+              <FormField
+                name="section"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Section</FormLabel>
+                    <Select onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select section" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {filteredSections.map((sec) => (
+                          <SelectItem key={sec.value} value={sec.value}>
+                            {sec.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormField
+              name="year"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Year</FormLabel>
+                  <Select onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {YEARS.map((y) => (
+                        <SelectItem key={y.value} value={y.value}>
+                          {y.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
           </div>
 
+          {/* Skills */}
           <FormField
+            name="techSkills"
             control={form.control}
-            name="skills"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Technical Skills</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="e.g., JavaScript, Python, React, UI/UX Design"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  List your technical skills separated by commas
-                </FormDescription>
-                <FormMessage />
+                <div className="grid grid-cols-2 gap-2">
+                  {techSkillOptions.map((skill) => (
+                    <label key={skill} className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={field.value?.includes(skill)}
+                        onCheckedChange={(checked) => {
+                          checked
+                            ? field.onChange([...field.value, skill])
+                            : field.onChange(
+                                field.value.filter((v) => v !== skill)
+                              );
+                        }}
+                      />
+                      <span>{skill}</span>
+                    </label>
+                  ))}
+                </div>
+                <Input
+                  placeholder="Other (specify)"
+                  {...form.register("techSkillsOther")}
+                />
               </FormItem>
             )}
           />
 
+          {/* Leadership */}
           <FormField
+            name="leadershipSkills"
             control={form.control}
-            name="experience"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Previous Experience (Optional)</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Briefly describe any previous experience in tech clubs, projects, or events"
-                    className="min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
+                <FormLabel>Management & Leadership Skills</FormLabel>
+                <div className="grid grid-cols-2 gap-2">
+                  {leadershipOptions.map((skill) => (
+                    <label key={skill} className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={field.value?.includes(skill)}
+                        onCheckedChange={(checked) => {
+                          checked
+                            ? field.onChange([...(field.value ?? []), skill])
+                            : field.onChange(
+                                field.value?.filter((v) => v !== skill)
+                              );
+                        }}
+                      />
+                      <span>{skill}</span>
+                    </label>
+                  ))}
+                </div>
+                <Input
+                  placeholder="Other (specify)"
+                  {...form.register("leadershipOther")}
+                />
               </FormItem>
             )}
           />
 
+          {/* Things to Learn */}
           <FormField
+            name="thingsToLearn"
             control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Things You Want to Learn From ACCITC</FormLabel>
+                <div className="grid grid-cols-2 gap-2">
+                  {learningOptions.map((opt) => (
+                    <label key={opt} className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={field.value?.includes(opt)}
+                        onCheckedChange={(checked) => {
+                          checked
+                            ? field.onChange([...(field.value ?? []), opt])
+                            : field.onChange(
+                                field.value?.filter((v) => v !== opt)
+                              );
+                        }}
+                      />
+                      <span>{opt}</span>
+                    </label>
+                  ))}
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {/* Other Info */}
+          <FormField
+            name="achievements"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Past Achievements</FormLabel>
+                <Textarea
+                  placeholder="List your past achievements in tech or competitions"
+                  {...field}
+                />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <FormField
+              name="portfolio"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Portfolio (Optional)</FormLabel>
+                  <Input placeholder="https://myportfolio.com" {...field} />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="github"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>GitHub Link</FormLabel>
+                  <Input placeholder="https://github.com/username" {...field} />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="freelancing"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Freelance Profile</FormLabel>
+                  <Input placeholder="https://fiverr.com/username" {...field} />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
             name="reason"
+            control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Why do you want to join the IT Club?</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Tell us why you're interested in joining our club and what you hope to gain from the experience"
-                    className="min-h-[120px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
+                <FormLabel>Why Join ACCITC?</FormLabel>
+                <Textarea placeholder="Your reason for joining" {...field} />
               </FormItem>
             )}
           />
@@ -365,10 +508,6 @@ export default function JoinForm() {
                     By submitting this form, you agree to our{" "}
                     <a href="/terms" className="text-[#3b82f6] underline">
                       Terms of Service
-                    </a>{" "}
-                    and{" "}
-                    <a href="/privacy" className="text-[#3b82f6] underline">
-                      Privacy Policy
                     </a>
                     .
                   </FormDescription>
@@ -381,8 +520,7 @@ export default function JoinForm() {
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...
               </>
             ) : (
               "Submit Application"

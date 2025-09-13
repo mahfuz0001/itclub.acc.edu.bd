@@ -3,7 +3,7 @@ export const STREAMS = [
   { value: "commerce", label: "Commerce" },
   { value: "arts", label: "Arts" },
   { value: "others", label: "Others" },
-]
+];
 
 export const YEARS = [
   { value: "2022", label: "Batch of 2022" },
@@ -11,9 +11,12 @@ export const YEARS = [
   { value: "2024", label: "Batch of 2024" },
   { value: "2025", label: "Batch of 2025" },
   { value: "2026", label: "Batch of 2026" },
-]
+];
 
-export const STREAM_SECTIONS: Record<"science" | "business" | "humanities" | "others", { value: string; label: string }[]> = {
+export const STREAM_SECTIONS: Record<
+  "science" | "business" | "humanities" | "others",
+  { value: string; label: string }[]
+> = {
   science: [
     { value: "S1", label: "S1" },
     { value: "S2", label: "S2" },
@@ -32,6 +35,7 @@ export const STREAM_SECTIONS: Record<"science" | "business" | "humanities" | "ot
     { value: "S15", label: "S15" },
     { value: "S16", label: "S16" },
     { value: "S17", label: "S17" },
+    { value: "S18", label: "S18" },
   ],
   business: [
     { value: "B1", label: "B1" },
@@ -39,12 +43,7 @@ export const STREAM_SECTIONS: Record<"science" | "business" | "humanities" | "ot
     { value: "B3", label: "B3" },
     { value: "B4", label: "B4" },
   ],
-  humanities: [
-    { value: "A1", label: "A1" },
-    { value: "A2", label: "A2" },
-    { value: "A3", label: "A3" },
-    { value: "A4", label: "A4" },
-  ],
+  humanities: [{ value: "H", label: "H" }],
   others: [
     { value: "O1", label: "O1" },
     { value: "O2", label: "O2" },

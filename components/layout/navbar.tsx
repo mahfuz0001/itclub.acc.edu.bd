@@ -55,7 +55,7 @@ export default function Header() {
 
   return (
     <motion.header
-      className="sticky top-0 z-50 bg-background/80 backdrop-blur-md"
+      className="sticky top-0 z-50 bg-background/80 backdrop-blur-md shadow-[0_0_25px_2px_rgba(116,191,69,0.15)]"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6 }}
@@ -65,24 +65,18 @@ export default function Header() {
         aria-label="Global"
       >
         <div className="flex lg:flex-1">
-          {/* <button
-            onClick={() => handleNavClick("#home")}
-            className="-m-1.5 p-1.5 text-2xl font-bold leading-6 text-primary"
-          >
-            ACCITC
-          </button> */}
           <Image
             src="/Logo.png"
             alt="ACCITC Logo"
             width={60}
             height={60}
-            className="h-12 w-12 rounded-full"
+            className="h-12 w-12 rounded-full drop-shadow-[0_0_8px_rgba(116,191,69,0.5)]"
           />
         </div>
         <div className="flex lg:hidden">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-foreground hover:text-primary transition-colors"
+            className="text-foreground hover:text-[#74bf45] hover:drop-shadow-[0_0_8px_rgba(116,191,69,0.7)] transition-all"
           >
             <MenuIcon className="h-6 w-6" />
           </button>
@@ -92,7 +86,7 @@ export default function Header() {
             <button
               key={item.href}
               onClick={() => handleNavClick(item.href)}
-              className="text-sm font-semibold leading-6 text-foreground hover:text-primary transition-colors"
+              className="text-sm font-semibold leading-6 text-foreground hover:text-[#74bf45] hover:drop-shadow-[0_0_6px_rgba(116,191,69,0.6)] transition-all"
             >
               {item.name}
             </button>
@@ -102,7 +96,7 @@ export default function Header() {
           {mounted && (
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="rounded-full p-2 bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              className="rounded-full p-2 bg-[#74bf45]/10 text-[#74bf45] hover:bg-[#74bf45]/20 hover:shadow-[0_0_15px_4px_rgba(116,191,69,0.4)] transition-all"
             >
               {theme === "dark" ? (
                 <SunIcon className="h-5 w-5" />
@@ -128,7 +122,7 @@ export default function Header() {
                 <button
                   key={item.href}
                   onClick={() => handleNavClick(item.href)}
-                  className="block rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-primary/10 hover:text-primary w-full text-left"
+                  className="block rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-[#74bf45]/10 hover:text-[#74bf45] hover:drop-shadow-[0_0_6px_rgba(116,191,69,0.6)] w-full text-left transition-all"
                 >
                   {item.name}
                 </button>
@@ -136,7 +130,7 @@ export default function Header() {
               {mounted && (
                 <button
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                  className="flex items-center rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-primary/10 hover:text-primary w-full"
+                  className="flex items-center rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-[#74bf45]/10 hover:text-[#74bf45] hover:drop-shadow-[0_0_6px_rgba(116,191,69,0.6)] w-full transition-all"
                 >
                   {theme === "dark" ? (
                     <>
