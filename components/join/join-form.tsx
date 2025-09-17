@@ -73,7 +73,9 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Enter a valid email address." }),
   phone: z.string().min(10, { message: "Enter a valid phone number." }),
-  facebook: z.string().url().optional(),
+  facebook: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
+    message: "Enter a valid URL or leave empty",
+  }),
   address: z.string().min(5, { message: "Enter your present address." }),
   previousSchool: z.string().optional(),
   stream: z.string(),
@@ -88,9 +90,15 @@ const formSchema = z.object({
   leadershipOther: z.string().optional(),
   thingsToLearn: z.array(z.string()).optional(),
   achievements: z.string().optional(),
-  portfolio: z.string().url().optional(),
-  github: z.string().url().optional(),
-  freelancing: z.string().url().optional(),
+  portfolio: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
+    message: "Enter a valid URL or leave empty",
+  }),
+  github: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
+    message: "Enter a valid URL or leave empty",
+  }),
+  freelancing: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
+    message: "Enter a valid URL or leave empty",
+  }),
   reason: z
     .string()
     .min(10, { message: "Tell us why you want to join (min 10 chars)." }),
@@ -215,13 +223,14 @@ export default function JoinForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Facebook Profile Link</FormLabel>
+                  <FormLabel>Facebook Profile Link (Optional)</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="https://facebook.com/your.profile"
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -308,6 +317,7 @@ export default function JoinForm() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -333,10 +343,25 @@ export default function JoinForm() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+
+          <FormField
+            name="rollNumber"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>ID Number</FormLabel>
+                <FormControl>
+                  <Input placeholder="Your student ID number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Skills */}
           <FormField
@@ -366,6 +391,7 @@ export default function JoinForm() {
                   placeholder="Other (specify)"
                   {...form.register("techSkillsOther")}
                 />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -436,7 +462,7 @@ export default function JoinForm() {
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Past Achievements</FormLabel>
+                <FormLabel>Past Achievements (Optional)</FormLabel>
                 <Textarea
                   placeholder="List your past achievements in tech or competitions"
                   {...field}
@@ -453,6 +479,7 @@ export default function JoinForm() {
                 <FormItem>
                   <FormLabel>Portfolio (Optional)</FormLabel>
                   <Input placeholder="https://myportfolio.com" {...field} />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -461,8 +488,9 @@ export default function JoinForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>GitHub Link</FormLabel>
+                  <FormLabel>GitHub Link (Optional)</FormLabel>
                   <Input placeholder="https://github.com/username" {...field} />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -471,8 +499,9 @@ export default function JoinForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Freelance Profile</FormLabel>
+                  <FormLabel>Freelance Profile (Optional)</FormLabel>
                   <Input placeholder="https://fiverr.com/username" {...field} />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -485,6 +514,7 @@ export default function JoinForm() {
               <FormItem>
                 <FormLabel>Why Join ACCITC?</FormLabel>
                 <Textarea placeholder="Your reason for joining" {...field} />
+                <FormMessage />
               </FormItem>
             )}
           />

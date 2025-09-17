@@ -14,7 +14,7 @@ export const YEARS = [
 ];
 
 export const STREAM_SECTIONS: Record<
-  "science" | "business" | "humanities" | "others",
+  "science" | "commerce" | "arts" | "others",
   { value: string; label: string }[]
 > = {
   science: [
@@ -37,13 +37,13 @@ export const STREAM_SECTIONS: Record<
     { value: "S17", label: "S17" },
     { value: "S18", label: "S18" },
   ],
-  business: [
+  commerce: [
     { value: "B1", label: "B1" },
     { value: "B2", label: "B2" },
     { value: "B3", label: "B3" },
     { value: "B4", label: "B4" },
   ],
-  humanities: [{ value: "H", label: "H" }],
+  arts: [{ value: "H", label: "H" }],
   others: [
     { value: "O1", label: "O1" },
     { value: "O2", label: "O2" },
