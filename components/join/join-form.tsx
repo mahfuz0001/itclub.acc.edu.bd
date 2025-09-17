@@ -73,9 +73,12 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Enter a valid email address." }),
   phone: z.string().min(10, { message: "Enter a valid phone number." }),
-  facebook: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
-    message: "Enter a valid URL or leave empty",
-  }),
+  facebook: z
+    .string()
+    .optional()
+    .refine((val) => !val || z.string().url().safeParse(val).success, {
+      message: "Enter a valid URL or leave empty",
+    }),
   address: z.string().min(5, { message: "Enter your present address." }),
   previousSchool: z.string().optional(),
   stream: z.string(),
@@ -90,15 +93,24 @@ const formSchema = z.object({
   leadershipOther: z.string().optional(),
   thingsToLearn: z.array(z.string()).optional(),
   achievements: z.string().optional(),
-  portfolio: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
-    message: "Enter a valid URL or leave empty",
-  }),
-  github: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
-    message: "Enter a valid URL or leave empty",
-  }),
-  freelancing: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
-    message: "Enter a valid URL or leave empty",
-  }),
+  portfolio: z
+    .string()
+    .optional()
+    .refine((val) => !val || z.string().url().safeParse(val).success, {
+      message: "Enter a valid URL or leave empty",
+    }),
+  github: z
+    .string()
+    .optional()
+    .refine((val) => !val || z.string().url().safeParse(val).success, {
+      message: "Enter a valid URL or leave empty",
+    }),
+  freelancing: z
+    .string()
+    .optional()
+    .refine((val) => !val || z.string().url().safeParse(val).success, {
+      message: "Enter a valid URL or leave empty",
+    }),
   reason: z
     .string()
     .min(10, { message: "Tell us why you want to join (min 10 chars)." }),
@@ -131,8 +143,17 @@ export default function JoinForm() {
   async function onSubmit(values: FormValues) {
     try {
       setIsSubmitting(true);
-      setError(null);
-      await submitJoinApplication(values);
+      setError(null); // Remove undefined fields before sending to Firestore
+
+      const sanitizedValues = Object.fromEntries(
+        Object.entries(values).filter(([_, v]) => v !== undefined)
+      ); // If the 'achievements' field is an empty string, set it to a valid value like null or remove it. // This handles cases where the user leaves the optional field blank.
+
+      if (sanitizedValues.achievements === "") {
+        delete sanitizedValues.achievements;
+      }
+
+      await submitJoinApplication(sanitizedValues);
       toast({
         title: "Application Submitted",
         description: "We'll get back to you soon!",
