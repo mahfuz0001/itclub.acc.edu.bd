@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/lib/firebase/auth-provider";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -64,10 +65,12 @@ export default function RootLayout({
           "min-h-screen bg-background font-sans antialiased"
         )}
       >
-        <AuthProvider>
-          {children}
-          <Toaster />
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
