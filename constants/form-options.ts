@@ -6,11 +6,9 @@ export const STREAMS = [
 ];
 
 export const YEARS = [
-  { value: "2022", label: "Batch of 2022" },
-  { value: "2023", label: "Batch of 2023" },
-  { value: "2024", label: "Batch of 2024" },
   { value: "2025", label: "Batch of 2025" },
   { value: "2026", label: "Batch of 2026" },
+  { value: "2027", label: "Batch of 2027" },
 ];
 
 export const STREAM_SECTIONS: Record<
