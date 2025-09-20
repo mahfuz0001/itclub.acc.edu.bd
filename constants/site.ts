@@ -11,4 +11,8 @@ export const SITE_CONFIG = {
     country: "Bangladesh",
     zip: "1206",
   },
+  groupChats: {
+    messenger: process.env.NEXT_PUBLIC_MESSENGER_GROUP_LINK || "",
+    instagram: process.env.NEXT_PUBLIC_INSTAGRAM_GROUP_LINK || "",
+  },
 };

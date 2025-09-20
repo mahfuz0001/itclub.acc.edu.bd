@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
+import { SITE_CONFIG } from "@/constants/site";
 
 interface Application {
   id: string;
@@ -123,22 +124,71 @@ export default function ApplicationsPage() {
     setFilteredApplications(filtered);
   };
 
+  const sendNotificationEmail = async (
+    application: Application,
+    status: "approved" | "rejected"
+  ) => {
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: status === "approved" ? "welcome" : "rejection",
+          to: application.email,
+          memberName: application.name,
+          messengerGroupLink: SITE_CONFIG.groupChats.messenger,
+          instagramGroupLink: SITE_CONFIG.groupChats.instagram,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send email');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to send notification email:', error);
+      // Don't throw the error - we don't want email failures to prevent status updates
+      toast({
+        title: "Warning",
+        description: `Application ${status} successfully, but failed to send notification email.`,
+        variant: "default",
+      });
+    }
+  };
+
   const handleStatusUpdate = async (
     id: string,
     newStatus: "approved" | "rejected"
   ) => {
     try {
+      // Find the application to get the details for email
+      const application = applications.find(app => app.id === id);
+      if (!application) {
+        throw new Error("Application not found");
+      }
+
+      // Update the status in the database first
       await updateDoc(doc(db, "applications", id), { status: newStatus });
+      
+      // Update the local state
       setApplications(
         applications.map((app) =>
           app.id === id ? { ...app, status: newStatus } : app
         )
       );
+
+      // Send notification email
+      await sendNotificationEmail(application, newStatus);
+
       toast({
         title: "Success",
         description: `Application ${
           newStatus === "approved" ? "approved" : "rejected"
-        } successfully.`,
+        } successfully. Notification email sent.`,
       });
     } catch (error) {
       console.error("Error updating application status:", error);
