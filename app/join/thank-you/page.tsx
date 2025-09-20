@@ -37,6 +37,17 @@ export default function ThankYouPage() {
               Join Official Messenger Group
             </Link>
           </Button>
+          <Button asChild variant="secondary" className="ml-3">
+            <Link
+              href="https://ig.me/j/Aba0aYuUMhFEmH-5/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Join Official IG
+            </Link>
+          </Button>
         </div>
       </div>
     </main>
