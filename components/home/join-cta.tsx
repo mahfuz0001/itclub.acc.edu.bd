@@ -5,15 +5,17 @@ import { CTASection } from "../blocks/cta-with-rectangle";
 export default function JoinCTA() {
   return (
     <CTASection
-      // badge={{
-      //   text: "Get started",
-      // }}
-      title="Join the ACC IT Club Today!"
-      description="Become a part of our growing community of tech enthusiasts. Learn, collaborate, and grow with us!"
+      badge={{
+        text: "🔥 Limited Spots Available",
+      }}
+      title="Join Bangladesh's Most Elite Tech Community!"
+      description="🚀 200+ Active Members • 50+ Events/Year • Industry Connections • Real Projects • Career Growth
+      
+      Don't miss out - Join ACCITC today and transform your tech journey with like-minded innovators, exclusive workshops, and direct mentorship from industry experts!"
       action={{
-        text: "Get Started",
+        text: "🎯 Secure Your Spot Now",
         href: "/join",
-        variant: "default",
+        variant: "glow",
       }}
     />
   );
