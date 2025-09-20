@@ -30,21 +30,12 @@ export default function ThankYouPage() {
           Your Application Has Been Submitted!
         </h2>
         
-        <p className="mb-8 text-lg text-[#94a3b8]">
-          Congratulations! You&apos;re one step closer to joining Bangladesh&apos;s most vibrant tech community. 
-          We&apos;ll review your application and send you an email notification soon.
-        </p>
-
         {/* Community Benefits */}
-        <div className="mb-8 p-6 bg-gradient-to-r from-[#74bf45]/10 to-blue-500/10 rounded-lg border border-[#74bf45]/20">
+        <div className="mb-6 p-6 bg-gradient-to-r from-[#74bf45]/10 to-blue-500/10 rounded-lg border border-[#74bf45]/20">
           <h3 className="mb-4 text-xl font-semibold text-[#74bf45] flex items-center justify-center gap-2">
             <Users className="h-6 w-6" />
             Join Our Active Community Now!
           </h3>
-          <p className="text-[#94a3b8] mb-4">
-            Don&apos;t wait for approval - connect with 200+ tech enthusiasts right away! 
-            Get event updates, project collaborations, and instant support from our amazing community.
-          </p>
         </div>
 
         {/* Enhanced Group Join Buttons */}
@@ -60,7 +51,6 @@ export default function ThankYouPage() {
                 <MessageCircle className="h-6 w-6" />
                 <div className="text-left">
                   <div className="font-bold">Join Messenger Group</div>
-                  <div className="text-sm opacity-90">Daily discussions & updates</div>
                 </div>
               </Link>
             </Button>
@@ -75,7 +65,6 @@ export default function ThankYouPage() {
                 <MessageCircle className="h-6 w-6" />
                 <div className="text-left">
                   <div className="font-bold">Join Instagram Group</div>
-                  <div className="text-sm opacity-90">Visual updates & stories</div>
                 </div>
               </Link>
             </Button>
