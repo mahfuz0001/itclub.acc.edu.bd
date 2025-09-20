@@ -13,31 +13,14 @@ export default function Footer() {
           <div className="space-y-3">
             <h3 className="text-lg font-bold">{SITE_CONFIG.name}</h3>
             <p className="text-sm text-[#94a3b8]">{SITE_CONFIG.description}</p>
-            
-            {/* Featured Facebook Page Link */}
-            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <Link
-                href={SOCIAL_LINKS.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors group"
-              >
-                <Facebook className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                <div>
-                  <div className="font-semibold text-sm">Follow Our Page</div>
-                  <div className="text-xs opacity-80">Latest updates & events</div>
-                </div>
-              </Link>
-            </div>
-
-            {/* Other Social Links */}
             <div className="flex space-x-3">
               {[
+                SOCIAL_LINKS.facebook,
                 SOCIAL_LINKS.twitter,
                 SOCIAL_LINKS.instagram,
                 SOCIAL_LINKS.linkedin,
               ].map((link, i) => {
-                const Icon = [Twitter, Instagram, Linkedin][i];
+                const Icon = [Facebook, Twitter, Instagram, Linkedin][i];
                 return (
                   <Link
                     key={i}
