@@ -93,9 +93,8 @@ const formSchema = z.object({
     .regex(/^[\d\-\+\(\)\s]+$/, { message: "Phone number contains invalid characters." }),
   facebook: z
     .string()
-    .optional()
     .refine((val) => !val || (z.string().url().safeParse(val).success && val.includes('facebook.com')), {
-      message: "Enter a valid Facebook URL or leave empty",
+      message: "Enter a valid Facebook URL",
     }),
   address: z.string()
     .min(5, { message: "Enter your present address." })
@@ -196,7 +195,7 @@ export default function JoinForm() {
           if (value === undefined || value === null) return false;
           if (typeof value === 'string' && value.trim() === '') {
             // Only keep empty strings for optional fields
-            const optionalFields = ['facebook', 'previousSchool', 'techSkillsOther', 'leadershipOther', 'achievements', 'portfolio', 'github', 'freelancing'];
+            const optionalFields = ['previousSchool', 'techSkillsOther', 'leadershipOther', 'achievements', 'portfolio', 'github', 'freelancing'];
             return optionalFields.includes(key) ? false : true;
           }
           return true;
@@ -330,7 +329,7 @@ export default function JoinForm() {
                 control={form.control}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Facebook Profile Link (Optional)</FormLabel>
+                    <FormLabel>Facebook Profile Link</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="https://facebook.com/your.profile"
