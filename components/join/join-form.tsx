@@ -31,15 +31,12 @@ import { STREAM_SECTIONS, STREAMS, YEARS } from "@/constants/form-options";
 import { submitJoinApplication } from "@/lib/firebase/join";
 import { useToast } from "@/components/ui/use-toast";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { 
-  getSafeErrorMessage, 
-  logError, 
-  retryOperation 
+import {
+  getSafeErrorMessage,
+  logError,
+  retryOperation,
 } from "@/lib/utils/error-handler";
-import { 
-  sanitizeObject, 
-  checkRateLimit 
-} from "@/lib/utils/validation";
+import { sanitizeObject, checkRateLimit } from "@/lib/utils/validation";
 
 const techSkillOptions = [
   "Programming",
@@ -80,51 +77,72 @@ const learningOptions = [
 ];
 
 const formSchema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(2, { message: "Name must be at least 2 characters." })
     .max(100, { message: "Name must be less than 100 characters." })
-    .regex(/^[a-zA-Z\s.'-]+$/, { message: "Name can only contain letters, spaces, and common punctuation." }),
-  email: z.string()
+    .regex(/^[a-zA-Z\s.'-]+$/, {
+      message: "Name can only contain letters, spaces, and common punctuation.",
+    }),
+  email: z
+    .string()
     .email({ message: "Enter a valid email address." })
     .max(254, { message: "Email address is too long." }),
-  phone: z.string()
+  phone: z
+    .string()
     .min(10, { message: "Enter a valid phone number." })
     .max(15, { message: "Phone number is too long." })
-    .regex(/^[\d\-\+\(\)\s]+$/, { message: "Phone number contains invalid characters." }),
+    .regex(/^[\d\-\+\(\)\s]+$/, {
+      message: "Phone number contains invalid characters.",
+    }),
   facebook: z
     .string()
-    .refine((val) => !val || (z.string().url().safeParse(val).success && val.includes('facebook.com')), {
-      message: "Enter a valid Facebook URL",
-    }),
-  address: z.string()
+    .refine(
+      (val) =>
+        !val ||
+        (z.string().url().safeParse(val).success &&
+          val.includes("facebook.com")),
+      {
+        message: "Enter a valid Facebook URL",
+      }
+    ),
+  address: z
+    .string()
     .min(5, { message: "Enter your present address." })
     .max(500, { message: "Address is too long." }),
-  previousSchool: z.string()
+  previousSchool: z
+    .string()
     .max(200, { message: "School name is too long." })
     .optional(),
   stream: z.string().min(1, { message: "Please select your stream." }),
   section: z.string().min(1, { message: "Please select your section." }),
   year: z.string().min(1, { message: "Please select your year." }),
-  rollNumber: z.string()
+  rollNumber: z
+    .string()
     .min(1, { message: "ID number is required." })
     .max(20, { message: "ID number is too long." }),
   techSkills: z
     .array(z.string())
     .min(1, { message: "Select at least one skill." })
     .max(10, { message: "Please select at most 10 skills." }),
-  techSkillsOther: z.string()
+  techSkillsOther: z
+    .string()
     .max(200, { message: "Additional skills description is too long." })
     .optional(),
-  leadershipSkills: z.array(z.string())
+  leadershipSkills: z
+    .array(z.string())
     .max(5, { message: "Please select at most 5 leadership skills." })
     .optional(),
-  leadershipOther: z.string()
+  leadershipOther: z
+    .string()
     .max(200, { message: "Additional leadership description is too long." })
     .optional(),
-  thingsToLearn: z.array(z.string())
+  thingsToLearn: z
+    .array(z.string())
     .max(10, { message: "Please select at most 10 items to learn." })
     .optional(),
-  achievements: z.string()
+  achievements: z
+    .string()
     .max(1000, { message: "Achievements description is too long." })
     .optional(),
   portfolio: z
@@ -136,9 +154,14 @@ const formSchema = z.object({
   github: z
     .string()
     .optional()
-    .refine((val) => !val || (z.string().url().safeParse(val).success && val.includes('github.com')), {
-      message: "Enter a valid GitHub URL or leave empty",
-    }),
+    .refine(
+      (val) =>
+        !val ||
+        (z.string().url().safeParse(val).success && val.includes("github.com")),
+      {
+        message: "Enter a valid GitHub URL or leave empty",
+      }
+    ),
   freelancing: z
     .string()
     .optional()
@@ -183,7 +206,9 @@ export default function JoinForm() {
       // Rate limiting check
       const rateLimit = checkRateLimit(`join-form-${values.email}`, 3, 3600000); // 3 submissions per hour per email
       if (!rateLimit.allowed) {
-        throw new Error("You have submitted too many applications recently. Please try again later.");
+        throw new Error(
+          "You have submitted too many applications recently. Please try again later."
+        );
       }
 
       // Sanitize all form data
@@ -193,9 +218,17 @@ export default function JoinForm() {
       const cleanedValues = Object.fromEntries(
         Object.entries(sanitizedValues).filter(([key, value]) => {
           if (value === undefined || value === null) return false;
-          if (typeof value === 'string' && value.trim() === '') {
+          if (typeof value === "string" && value.trim() === "") {
             // Only keep empty strings for optional fields
-            const optionalFields = ['previousSchool', 'techSkillsOther', 'leadershipOther', 'achievements', 'portfolio', 'github', 'freelancing'];
+            const optionalFields = [
+              "previousSchool",
+              "techSkillsOther",
+              "leadershipOther",
+              "achievements",
+              "portfolio",
+              "github",
+              "freelancing",
+            ];
             return optionalFields.includes(key) ? false : true;
           }
           return true;
@@ -214,7 +247,8 @@ export default function JoinForm() {
 
       toast({
         title: "Application Submitted Successfully!",
-        description: "Thank you for your application. We'll review it and get back to you soon!",
+        description:
+          "Thank you for your application. We'll review it and get back to you soon!",
         variant: "default",
       });
 
@@ -223,7 +257,7 @@ export default function JoinForm() {
     } catch (err) {
       const errorMessage = getSafeErrorMessage(err);
       setError(errorMessage);
-      
+
       logError(err, "Join form submission", {
         email: values.email?.substring(0, 3) + "***",
         stream: values.stream,
@@ -253,9 +287,9 @@ export default function JoinForm() {
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>
               {error}
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="mt-2 ml-2"
                 onClick={() => setError(null)}
               >
@@ -276,9 +310,9 @@ export default function JoinForm() {
                   <FormItem>
                     <FormLabel>Full Name *</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="John Doe" 
-                        {...field} 
+                      <Input
+                        placeholder="John Doe"
+                        {...field}
                         maxLength={100}
                       />
                     </FormControl>
@@ -314,9 +348,9 @@ export default function JoinForm() {
                   <FormItem>
                     <FormLabel>Phone *</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="01XXXXXXXXX" 
-                        {...field} 
+                      <Input
+                        placeholder="01XXXXXXXXX"
+                        {...field}
                         maxLength={15}
                       />
                     </FormControl>
@@ -349,9 +383,9 @@ export default function JoinForm() {
                 <FormItem>
                   <FormLabel>Present Address *</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Your current address" 
-                      {...field} 
+                    <Input
+                      placeholder="Your current address"
+                      {...field}
                       maxLength={500}
                     />
                   </FormControl>
@@ -367,9 +401,9 @@ export default function JoinForm() {
                 <FormItem>
                   <FormLabel>Previous School (Optional)</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Your previous school" 
-                      {...field} 
+                    <Input
+                      placeholder="Your previous school"
+                      {...field}
                       maxLength={200}
                     />
                   </FormControl>
@@ -470,9 +504,9 @@ export default function JoinForm() {
                 <FormItem>
                   <FormLabel>ID Number *</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Your student ID number" 
-                      {...field} 
+                    <Input
+                      placeholder="Your student ID number"
+                      {...field}
                       maxLength={20}
                     />
                   </FormControl>
@@ -487,10 +521,15 @@ export default function JoinForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Technical Skills * (Select at least 1, max 10)</FormLabel>
+                  <FormLabel>
+                    Technical Skills * (Select at least 1, max 10)
+                  </FormLabel>
                   <div className="grid grid-cols-2 gap-2">
                     {techSkillOptions.map((skill) => (
-                      <label key={skill} className="flex items-center space-x-2 cursor-pointer">
+                      <label
+                        key={skill}
+                        className="flex items-center space-x-2 cursor-pointer"
+                      >
                         <Checkbox
                           checked={field.value?.includes(skill)}
                           onCheckedChange={(checked) => {
@@ -500,12 +539,24 @@ export default function JoinForm() {
                                 field.onChange([...currentValues, skill]);
                               }
                             } else {
-                              field.onChange(currentValues.filter((v) => v !== skill));
+                              field.onChange(
+                                currentValues.filter((v) => v !== skill)
+                              );
                             }
                           }}
-                          disabled={!field.value?.includes(skill) && field.value?.length >= 10}
+                          disabled={
+                            !field.value?.includes(skill) &&
+                            field.value?.length >= 10
+                          }
                         />
-                        <span className={!field.value?.includes(skill) && field.value?.length >= 10 ? "text-gray-400" : ""}>
+                        <span
+                          className={
+                            !field.value?.includes(skill) &&
+                            field.value?.length >= 10
+                              ? "text-gray-400"
+                              : ""
+                          }
+                        >
                           {skill}
                         </span>
                       </label>
@@ -530,10 +581,15 @@ export default function JoinForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Management & Leadership Skills (Optional, max 5)</FormLabel>
+                  <FormLabel>
+                    Management & Leadership Skills (Optional, max 5)
+                  </FormLabel>
                   <div className="grid grid-cols-2 gap-2">
                     {leadershipOptions.map((skill) => (
-                      <label key={skill} className="flex items-center space-x-2 cursor-pointer">
+                      <label
+                        key={skill}
+                        className="flex items-center space-x-2 cursor-pointer"
+                      >
                         <Checkbox
                           checked={field.value?.includes(skill)}
                           onCheckedChange={(checked) => {
@@ -543,12 +599,24 @@ export default function JoinForm() {
                                 field.onChange([...currentValues, skill]);
                               }
                             } else {
-                              field.onChange(currentValues.filter((v) => v !== skill));
+                              field.onChange(
+                                currentValues.filter((v) => v !== skill)
+                              );
                             }
                           }}
-                          disabled={!field.value?.includes(skill) && (field.value?.length ?? 0) >= 5}
+                          disabled={
+                            !field.value?.includes(skill) &&
+                            (field.value?.length ?? 0) >= 5
+                          }
                         />
-                        <span className={!field.value?.includes(skill) && (field.value?.length ?? 0) >= 5 ? "text-gray-400" : ""}>
+                        <span
+                          className={
+                            !field.value?.includes(skill) &&
+                            (field.value?.length ?? 0) >= 5
+                              ? "text-gray-400"
+                              : ""
+                          }
+                        >
                           {skill}
                         </span>
                       </label>
@@ -572,10 +640,15 @@ export default function JoinForm() {
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Things You Want to Learn From ACCITC (Optional, max 10)</FormLabel>
+                  <FormLabel>
+                    Things You Want to Learn From ACCITC (Optional, max 6)
+                  </FormLabel>
                   <div className="grid grid-cols-2 gap-2">
                     {learningOptions.map((opt) => (
-                      <label key={opt} className="flex items-center space-x-2 cursor-pointer">
+                      <label
+                        key={opt}
+                        className="flex items-center space-x-2 cursor-pointer"
+                      >
                         <Checkbox
                           checked={field.value?.includes(opt)}
                           onCheckedChange={(checked) => {
@@ -585,12 +658,24 @@ export default function JoinForm() {
                                 field.onChange([...currentValues, opt]);
                               }
                             } else {
-                              field.onChange(currentValues.filter((v) => v !== opt));
+                              field.onChange(
+                                currentValues.filter((v) => v !== opt)
+                              );
                             }
                           }}
-                          disabled={!field.value?.includes(opt) && (field.value?.length ?? 0) >= 10}
+                          disabled={
+                            !field.value?.includes(opt) &&
+                            (field.value?.length ?? 0) >= 10
+                          }
                         />
-                        <span className={!field.value?.includes(opt) && (field.value?.length ?? 0) >= 10 ? "text-gray-400" : ""}>
+                        <span
+                          className={
+                            !field.value?.includes(opt) &&
+                            (field.value?.length ?? 0) >= 10
+                              ? "text-gray-400"
+                              : ""
+                          }
+                        >
                           {opt}
                         </span>
                       </label>
@@ -641,7 +726,10 @@ export default function JoinForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>GitHub Link (Optional)</FormLabel>
-                    <Input placeholder="https://github.com/username" {...field} />
+                    <Input
+                      placeholder="https://github.com/username"
+                      {...field}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -652,7 +740,10 @@ export default function JoinForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Freelance Profile (Optional)</FormLabel>
-                    <Input placeholder="https://fiverr.com/username" {...field} />
+                    <Input
+                      placeholder="https://fiverr.com/username"
+                      {...field}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -665,9 +756,9 @@ export default function JoinForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Why Join ACCITC? *</FormLabel>
-                  <Textarea 
+                  <Textarea
                     placeholder="Tell us why you want to join our club and what you hope to achieve..."
-                    {...field} 
+                    {...field}
                     maxLength={1000}
                     rows={4}
                   />
@@ -696,10 +787,14 @@ export default function JoinForm() {
                     </FormLabel>
                     <FormDescription>
                       By submitting this form, you agree to our{" "}
-                      <a href="/terms" className="text-[#3b82f6] underline hover:text-[#2563eb]">
+                      <a
+                        href="/terms"
+                        className="text-[#3b82f6] underline hover:text-[#2563eb]"
+                      >
                         Terms of Service
                       </a>{" "}
-                      and acknowledge that your information will be used for club membership purposes.
+                      and acknowledge that your information will be used for
+                      club membership purposes.
                     </FormDescription>
                     <FormMessage />
                   </div>
@@ -707,15 +802,15 @@ export default function JoinForm() {
               )}
             />
 
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               disabled={isSubmitting}
               size="lg"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Submitting Application...
                 </>
               ) : (
