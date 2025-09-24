@@ -11,4 +11,5 @@ export interface Member {
   createdAt: string;
   year: string;
   status: "pending" | "approved" | "rejected";
+  rollNumber?: string;
 }
