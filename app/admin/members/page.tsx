@@ -49,6 +49,7 @@ interface Member {
   stream: string;
   batch: string;
   status: string;
+  rollNumber?: string;
 }
 
 export default function MembersPage() {
@@ -56,6 +57,7 @@ export default function MembersPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [batchFilter, setBatchFilter] = useState("all");
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -65,10 +67,12 @@ export default function MembersPage() {
         (member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
           member.stream.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.batch.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (statusFilter === "all" || member.status === statusFilter)
+          member.batch.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.rollNumber?.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        (statusFilter === "all" || member.status === statusFilter) &&
+        (batchFilter === "all" || member.batch === batchFilter)
     );
-  }, [members, searchTerm, statusFilter]);
+  }, [members, searchTerm, statusFilter, batchFilter]);
 
   useEffect(() => {
     if (user) {
@@ -105,6 +109,7 @@ export default function MembersPage() {
             stream: doc.data().stream,
             batch: doc.data().year,
             status: doc.data().status,
+            rollNumber: doc.data().rollNumber,
           } as Member)
       );
 
@@ -177,46 +182,87 @@ export default function MembersPage() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold flex justify-between items-center">
-          Members
-          {user?.role !== "panel" && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>
-                  <UserPlus className="mr-2 h-4 w-4" /> Add New Member
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Member</DialogTitle>
-                </DialogHeader>
-                {/* Add form fields for new member here */}
-              </DialogContent>
-            </Dialog>
-          )}
-        </CardTitle>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-2xl font-bold flex items-center gap-2">
+              Members
+              <Badge variant="outline" className="text-sm">
+                {members.length} Total
+              </Badge>
+            </CardTitle>
+          </div>
+          <div className="flex gap-4 text-sm">
+            <div className="text-center">
+              <div className="font-bold text-green-600">
+                {members.filter(member => member.status === "active" || member.status === "approved").length}
+              </div>
+              <div className="text-gray-600">Active</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-gray-600">
+                {members.filter(member => member.status === "inactive").length}
+              </div>
+              <div className="text-gray-600">Inactive</div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-blue-600">
+                {[...new Set(members.map(m => m.batch))].length}
+              </div>
+              <div className="text-gray-600">Batches</div>
+            </div>
+          </div>
+        </div>
+        {user?.role !== "panel" && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="mt-4">
+                <UserPlus className="mr-2 h-4 w-4" /> Add New Member
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Member</DialogTitle>
+              </DialogHeader>
+              {/* Add form fields for new member here */}
+            </DialogContent>
+          </Dialog>
+        )}
       </CardHeader>
       <CardContent>
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 md:space-x-4">
           <div className="flex items-center w-full md:w-auto">
             <Search className="h-5 w-5 text-muted-foreground mr-2" />
             <Input
-              placeholder="Search members..."
+              placeholder="Search members by name, email, ID, stream, or batch..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-[180px]">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select value={batchFilter} onValueChange={setBatchFilter}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="All Batches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Batches</SelectItem>
+                {[...new Set(members.map(member => member.batch))].sort().map(batch => (
+                  <SelectItem key={batch} value={batch}>{batch}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="rounded-md border">
@@ -225,6 +271,7 @@ export default function MembersPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Student ID</TableHead>
                 <TableHead>Stream</TableHead>
                 <TableHead>Batch</TableHead>
                 <TableHead>Status</TableHead>
@@ -236,6 +283,9 @@ export default function MembersPage() {
                 <TableRow key={member.id}>
                   <TableCell className="font-medium">{member.name}</TableCell>
                   <TableCell>{member.email}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {member.rollNumber || "N/A"}
+                  </TableCell>
                   <TableCell>{member.stream}</TableCell>
                   <TableCell>{member.batch}</TableCell>
                   <TableCell>
