@@ -9,6 +9,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -133,24 +135,59 @@ export default function MemberDetailModal({
   onClose,
   onEdit,
 }: MemberDetailModalProps) {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedMember, setEditedMember] = useState<Member | null>(null);
+  
   if (!member) return null;
+
+  const handleEditToggle = () => {
+    if (isEditMode) {
+      // Cancel edit - reset changes
+      setEditedMember(null);
+      setIsEditMode(false);
+    } else {
+      // Start edit - copy member data
+      setEditedMember({ ...member });
+      setIsEditMode(true);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editedMember && onEdit) {
+      onEdit(editedMember);
+      setIsEditMode(false);
+      setEditedMember(null);
+    }
+  };
+
+  const handleFieldChange = (field: keyof Member, value: string) => {
+    if (editedMember) {
+      setEditedMember({
+        ...editedMember,
+        [field]: value,
+      });
+    }
+  };
+
+  const currentMember = isEditMode ? editedMember : member;
+  if (!currentMember) return null;
 
   const handleExportProfile = () => {
     const profileData = {
-      name: member.name,
-      email: member.email,
-      stream: member.stream,
-      batch: member.batch,
-      year: member.year,
-      rollNumber: member.rollNumber,
-      status: member.status,
-      joinedDate: member.createdAt,
+      name: currentMember.name,
+      email: currentMember.email,
+      stream: currentMember.stream,
+      batch: currentMember.batch,
+      year: currentMember.year,
+      rollNumber: currentMember.rollNumber,
+      status: currentMember.status,
+      joinedDate: currentMember.createdAt,
     };
 
     const dataStr = JSON.stringify(profileData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
     
-    const exportFileDefaultName = `${member.name.replace(/\s+/g, '_').toLowerCase()}_profile.json`;
+    const exportFileDefaultName = `${currentMember.name.replace(/\s+/g, '_').toLowerCase()}_profile.json`;
     
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
@@ -181,28 +218,37 @@ export default function MemberDetailModal({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={member.photoUrl} alt={member.name} />
+                <AvatarImage src={currentMember.photoUrl} alt={currentMember.name} />
                 <AvatarFallback className="text-lg">
-                  {member.name.split(' ').map(n => n[0]).join('')}
+                  {currentMember.name.split(' ').map(n => n[0]).join('')}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <DialogTitle className="text-2xl">{member.name}</DialogTitle>
+                <DialogTitle className="text-2xl">{currentMember.name}</DialogTitle>
                 <DialogDescription className="text-lg">
-                  {member.stream} • Batch {member.year || member.batch}
+                  {currentMember.stream} • Batch {currentMember.year || currentMember.batch}
                 </DialogDescription>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge className={getStatusColor(member.status)}>
-                {member.status}
+              <Badge className={getStatusColor(currentMember.status)}>
+                {currentMember.status}
               </Badge>
               <Button variant="outline" size="sm" onClick={handleExportProfile}>
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
-              {onEdit && (
-                <Button variant="outline" size="sm" onClick={() => onEdit(member)}>
+              {isEditMode ? (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={handleEditToggle}>
+                    Cancel
+                  </Button>
+                  <Button size="sm" onClick={handleSaveEdit}>
+                    Save Changes
+                  </Button>
+                </div>
+              ) : (
+                <Button variant="outline" size="sm" onClick={handleEditToggle}>
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
@@ -224,27 +270,53 @@ export default function MemberDetailModal({
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">{member.email}</p>
+                    {isEditMode ? (
+                      <Input
+                        value={currentMember.email}
+                        onChange={(e) => handleFieldChange('email', e.target.value)}
+                        type="email"
+                        className="text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{currentMember.email}</p>
+                    )}
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
                   <Hash className="h-4 w-4 text-muted-foreground" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium">Student ID</p>
-                    <p className="text-sm text-muted-foreground font-mono">
-                      {member.rollNumber || 'N/A'}
-                    </p>
+                    {isEditMode ? (
+                      <Input
+                        value={currentMember.rollNumber || ''}
+                        onChange={(e) => handleFieldChange('rollNumber', e.target.value)}
+                        placeholder="Enter student ID"
+                        className="text-sm font-mono"
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground font-mono">
+                        {currentMember.rollNumber || 'N/A'}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium">Academic Stream</p>
-                    <p className="text-sm text-muted-foreground">{member.stream}</p>
+                    {isEditMode ? (
+                      <Input
+                        value={currentMember.stream}
+                        onChange={(e) => handleFieldChange('stream', e.target.value)}
+                        className="text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{currentMember.stream}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -252,39 +324,65 @@ export default function MemberDetailModal({
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium">Batch/Year</p>
-                    <p className="text-sm text-muted-foreground">{member.year || member.batch}</p>
+                    {isEditMode ? (
+                      <Input
+                        value={currentMember.year || currentMember.batch}
+                        onChange={(e) => handleFieldChange('year', e.target.value)}
+                        className="text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{currentMember.year || currentMember.batch}</p>
+                    )}
                   </div>
                 </div>
 
-                {member.phone && (
+                {(currentMember.phone || isEditMode) && (
                   <div className="flex items-center gap-3">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium">Phone</p>
-                      <p className="text-sm text-muted-foreground">{member.phone}</p>
+                      {isEditMode ? (
+                        <Input
+                          value={currentMember.phone || ''}
+                          onChange={(e) => handleFieldChange('phone', e.target.value)}
+                          placeholder="Enter phone number"
+                          className="text-sm"
+                        />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{currentMember.phone}</p>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {member.section && (
+                {(currentMember.section || isEditMode) && (
                   <div className="flex items-center gap-3">
                     <Hash className="h-4 w-4 text-muted-foreground" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium">Section</p>
-                      <p className="text-sm text-muted-foreground">{member.section}</p>
+                      {isEditMode ? (
+                        <Input
+                          value={currentMember.section || ''}
+                          onChange={(e) => handleFieldChange('section', e.target.value)}
+                          placeholder="Enter section"
+                          className="text-sm"
+                        />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{currentMember.section}</p>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {member.createdAt && (
+                {currentMember.createdAt && (
                   <div className="flex items-center gap-3">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium">Joined Date</p>
                       <p className="text-sm text-muted-foreground">
-                        {safeFormatDate(member.createdAt, 'PPP')}
+                        {safeFormatDate(currentMember.createdAt, 'PPP')}
                       </p>
                     </div>
                   </div>
@@ -294,7 +392,7 @@ export default function MemberDetailModal({
           </Card>
 
           {/* Contact Information */}
-          {(member.facebook) && (
+          {(currentMember.facebook || currentMember.phone || currentMember.address || isEditMode) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -303,20 +401,68 @@ export default function MemberDetailModal({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {member.facebook && (
+                {(currentMember.phone || isEditMode) && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Phone</p>
+                      {isEditMode ? (
+                        <Input
+                          value={currentMember.phone || ''}
+                          onChange={(e) => handleFieldChange('phone', e.target.value)}
+                          placeholder="Enter phone number"
+                          className="text-sm"
+                        />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{currentMember.phone}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {(currentMember.address || isEditMode) && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Address</p>
+                      {isEditMode ? (
+                        <Textarea
+                          value={currentMember.address || ''}
+                          onChange={(e) => handleFieldChange('address', e.target.value)}
+                          placeholder="Enter address"
+                          className="text-sm"
+                          rows={2}
+                        />
+                      ) : (
+                        <p className="text-sm text-muted-foreground">{currentMember.address}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {(currentMember.facebook || isEditMode) && (
                   <div className="flex items-center gap-3">
                     <Facebook className="h-4 w-4 text-muted-foreground" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium">Facebook</p>
-                      <a 
-                        href={member.facebook} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                      >
-                        {member.facebook}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                      {isEditMode ? (
+                        <Input
+                          value={currentMember.facebook || ''}
+                          onChange={(e) => handleFieldChange('facebook', e.target.value)}
+                          placeholder="https://facebook.com/your.profile"
+                          className="text-sm"
+                        />
+                      ) : (
+                        <a 
+                          href={currentMember.facebook} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                          {currentMember.facebook}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
                     </div>
                   </div>
                 )}
@@ -325,7 +471,7 @@ export default function MemberDetailModal({
           )}
 
           {/* Academic Background */}
-          {(member.previousSchool) && (
+          {(currentMember.previousSchool || isEditMode) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -334,15 +480,22 @@ export default function MemberDetailModal({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {member.previousSchool && (
-                  <div className="flex items-center gap-3">
-                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">Previous School</p>
-                      <p className="text-sm text-muted-foreground">{member.previousSchool}</p>
-                    </div>
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Previous School</p>
+                    {isEditMode ? (
+                      <Input
+                        value={currentMember.previousSchool || ''}
+                        onChange={(e) => handleFieldChange('previousSchool', e.target.value)}
+                        placeholder="Enter previous school"
+                        className="text-sm"
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{currentMember.previousSchool}</p>
+                    )}
                   </div>
-                )}
+                </div>
               </CardContent>
             </Card>
           )}
@@ -436,7 +589,7 @@ export default function MemberDetailModal({
           )}
 
           {/* Achievements & Portfolio */}
-          {(member.achievements || member.portfolio || member.github || member.freelancing) && (
+          {(currentMember.achievements || currentMember.portfolio || currentMember.github || currentMember.freelancing || currentMember.website || isEditMode) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -445,85 +598,131 @@ export default function MemberDetailModal({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {member.achievements && (
+                {(currentMember.achievements || isEditMode) && (
                   <div>
                     <p className="text-sm font-medium mb-2 flex items-center gap-2">
                       <Trophy className="h-4 w-4" />
                       Achievements
                     </p>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{member.achievements}</p>
+                    {isEditMode ? (
+                      <Textarea
+                        value={currentMember.achievements || ''}
+                        onChange={(e) => handleFieldChange('achievements', e.target.value)}
+                        placeholder="List your past achievements in tech or competitions"
+                        className="text-sm"
+                        rows={4}
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentMember.achievements}</p>
+                    )}
                   </div>
                 )}
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  {member.portfolio && (
+                  {(currentMember.portfolio || isEditMode) && (
                     <div className="flex items-center gap-3">
                       <Globe className="h-4 w-4 text-muted-foreground" />
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium">Portfolio</p>
-                        <a 
-                          href={member.portfolio} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                        >
-                          {member.portfolio}
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
+                        {isEditMode ? (
+                          <Input
+                            value={currentMember.portfolio || ''}
+                            onChange={(e) => handleFieldChange('portfolio', e.target.value)}
+                            placeholder="https://myportfolio.com"
+                            className="text-sm"
+                          />
+                        ) : (
+                          <a 
+                            href={currentMember.portfolio} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                          >
+                            {currentMember.portfolio}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {member.github && (
+                  {(currentMember.github || isEditMode) && (
                     <div className="flex items-center gap-3">
                       <Github className="h-4 w-4 text-muted-foreground" />
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium">GitHub</p>
-                        <a 
-                          href={member.github} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                        >
-                          {member.github}
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
+                        {isEditMode ? (
+                          <Input
+                            value={currentMember.github || ''}
+                            onChange={(e) => handleFieldChange('github', e.target.value)}
+                            placeholder="https://github.com/username"
+                            className="text-sm"
+                          />
+                        ) : (
+                          <a 
+                            href={currentMember.github} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                          >
+                            {currentMember.github}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {member.freelancing && (
-                    <div className="flex items-center gap-3">
-                      <Briefcase className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm font-medium">Freelancing</p>
-                        <a 
-                          href={member.freelancing} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                        >
-                          {member.freelancing}
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </div>
-                    </div>
-                  )}
-
-                  {member.website && (
+                  {(currentMember.website || isEditMode) && (
                     <div className="flex items-center gap-3">
                       <Globe className="h-4 w-4 text-muted-foreground" />
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium">Website</p>
-                        <a 
-                          href={member.website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                        >
-                          {member.website}
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
+                        {isEditMode ? (
+                          <Input
+                            value={currentMember.website || ''}
+                            onChange={(e) => handleFieldChange('website', e.target.value)}
+                            placeholder="https://mywebsite.com"
+                            className="text-sm"
+                          />
+                        ) : (
+                          <a 
+                            href={currentMember.website} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                          >
+                            {currentMember.website}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {(currentMember.freelancing || isEditMode) && (
+                    <div className="flex items-center gap-3">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Freelancing</p>
+                        {isEditMode ? (
+                          <Input
+                            value={currentMember.freelancing || ''}
+                            onChange={(e) => handleFieldChange('freelancing', e.target.value)}
+                            placeholder="https://fiverr.com/username"
+                            className="text-sm"
+                          />
+                        ) : (
+                          <a 
+                            href={currentMember.freelancing} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                          >
+                            {currentMember.freelancing}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
                       </div>
                     </div>
                   )}
@@ -533,7 +732,7 @@ export default function MemberDetailModal({
           )}
 
           {/* Application Details */}
-          {(member.reason || member.bio) && (
+          {(currentMember.reason || currentMember.bio || isEditMode) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -542,43 +741,43 @@ export default function MemberDetailModal({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {member.reason && (
+                {(currentMember.reason || isEditMode) && (
                   <div>
                     <p className="text-sm font-medium mb-2">Why they wanted to join</p>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{member.reason}</p>
+                    {isEditMode ? (
+                      <Textarea
+                        value={currentMember.reason || ''}
+                        onChange={(e) => handleFieldChange('reason', e.target.value)}
+                        placeholder="Tell us why you want to join our club and what you hope to achieve..."
+                        className="text-sm"
+                        rows={4}
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentMember.reason}</p>
+                    )}
                   </div>
                 )}
 
-                {member.bio && (
+                {(currentMember.bio || isEditMode) && (
                   <div>
                     <p className="text-sm font-medium mb-2">Bio</p>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{member.bio}</p>
+                    {isEditMode ? (
+                      <Textarea
+                        value={currentMember.bio || ''}
+                        onChange={(e) => handleFieldChange('bio', e.target.value)}
+                        placeholder="Enter a short bio"
+                        className="text-sm"
+                        rows={3}
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentMember.bio}</p>
+                    )}
                   </div>
                 )}
               </CardContent>
             </Card>
           )}
 
-          {/* Additional Information (Legacy) */}
-          {(member.address) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
-                  Location Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium">Address</p>
-                    <p className="text-sm text-muted-foreground">{member.address}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Member Statistics */}
           <Card>
@@ -590,7 +789,7 @@ export default function MemberDetailModal({
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">
                     {(() => {
-                      const days = safeDateDifference(member.createdAt);
+                      const days = safeDateDifference(currentMember.createdAt);
                       return days !== null ? days : 'N/A';
                     })()}
                   </div>
@@ -599,14 +798,14 @@ export default function MemberDetailModal({
                 
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">
-                    {member.status === 'active' || member.status === 'approved' ? 'Active' : 'Inactive'}
+                    {currentMember.status === 'active' || currentMember.status === 'approved' ? 'Active' : 'Inactive'}
                   </div>
                   <div className="text-sm text-muted-foreground">Current Status</div>
                 </div>
                 
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600">
-                    {member.position || 'Member'}
+                    {currentMember.position || 'Member'}
                   </div>
                   <div className="text-sm text-muted-foreground">Position</div>
                 </div>
