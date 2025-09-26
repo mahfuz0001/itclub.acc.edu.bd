@@ -115,6 +115,7 @@ interface Member {
   website?: string;
   // Application Details
   reason?: string;
+  agreeToTerms?: boolean;
   // Additional fields for existing members
   bio?: string;
   skills?: string[];
@@ -765,6 +766,19 @@ export default function MemberDetailModal({
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentMember.reason || 'No reason provided'}</p>
                 )}
               </div>
+
+              {/* Terms Agreement Status */}
+              {(typeof currentMember.agreeToTerms === 'boolean') && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Agreed to Terms & Conditions</p>
+                  <div className="flex items-center gap-2">
+                    <div className={`h-2 w-2 rounded-full ${currentMember.agreeToTerms ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <p className={`text-sm ${currentMember.agreeToTerms ? 'text-green-700' : 'text-red-700'}`}>
+                      {currentMember.agreeToTerms ? 'Yes' : 'No'}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Bio - additional field for existing members */}
               {(currentMember.bio || isEditMode) && (
