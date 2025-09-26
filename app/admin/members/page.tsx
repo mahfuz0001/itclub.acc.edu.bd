@@ -243,6 +243,62 @@ export default function MembersPage() {
     }
   };
 
+  const updateMember = async (updatedMember: Member) => {
+    try {
+      const memberDoc = doc(db, "applications", updatedMember.id);
+      await updateDoc(memberDoc, {
+        name: updatedMember.name,
+        email: updatedMember.email,
+        stream: updatedMember.stream,
+        year: updatedMember.year,
+        batch: updatedMember.batch,
+        rollNumber: updatedMember.rollNumber,
+        phone: updatedMember.phone,
+        address: updatedMember.address,
+        facebook: updatedMember.facebook,
+        section: updatedMember.section,
+        previousSchool: updatedMember.previousSchool,
+        achievements: updatedMember.achievements,
+        portfolio: updatedMember.portfolio,
+        github: updatedMember.github,
+        website: updatedMember.website,
+        freelancing: updatedMember.freelancing,
+        reason: updatedMember.reason,
+        bio: updatedMember.bio,
+      });
+      
+      setMembers((prevMembers) =>
+        prevMembers.map((member) =>
+          member.id === updatedMember.id ? updatedMember : member
+        )
+      );
+      
+      // Log the action
+      if (user) {
+        await logAdminAction(
+          user.uid,
+          user.email || '',
+          AUDIT_ACTIONS.MEMBER_EDIT,
+          'member',
+          updatedMember.id,
+          { memberName: updatedMember.name, memberEmail: updatedMember.email }
+        );
+      }
+      
+      toast({
+        title: "Success",
+        description: "Member information updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating member:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update member information. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const updateMemberStatus = async (memberId: string, newStatus: string) => {
     try {
       await updateDoc(doc(db, "applications", memberId), { status: newStatus });
@@ -683,12 +739,7 @@ export default function MembersPage() {
           isOpen={isDetailModalOpen}
           onClose={() => setIsDetailModalOpen(false)}
           onEdit={(member) => {
-            // Handle edit member functionality
-            console.log("Edit member:", member);
-            toast({
-              title: "Edit Member",
-              description: "Edit functionality will be implemented soon.",
-            });
+            updateMember(member);
           }}
         />
       </ErrorBoundary>
