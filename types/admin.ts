@@ -9,5 +9,21 @@ export interface DashboardStats {
   recentNews: Partial<NewsItem>[]
   galleryCount: number
   adminEmail: string
+  membersByBatch: { batch: string; count: number }[]
+  membersByStream: { stream: string; count: number }[]
+  memberGrowth: { month: string; members: number }[]
+  activeMembers: number
+  inactiveMembers: number
+  totalPanelists: number
+}
+
+export interface MemberAnalytics {
+  totalMembers: number
+  activeMembers: number
+  inactiveMembers: number
+  membersByBatch: { batch: string; count: number }[]
+  membersByStream: { stream: string; count: number }[]
+  memberGrowth: { month: string; members: number }[]
+  recentJoins: Member[]
 }
 
