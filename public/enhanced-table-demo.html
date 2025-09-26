@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Members Table Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-[90vw] mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-center">Enhanced Members Table - All Signup Information</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">✅ New Features Added</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-medium text-green-600 mb-3">Table Enhancements</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>• Added Phone column (required field)</li>
+                        <li>• Added Section column</li>
+                        <li>• Added Skills preview with badges</li>
+                        <li>• Improved responsive layout</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium text-green-600 mb-3">Fixed Issues</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li>• ✅ Fixed TypeError: O.skills.map error</li>
+                        <li>• ✅ Fixed Firebase audit logging undefined ipAddress</li>
+                        <li>• ✅ Added missing site.webmanifest file</li>
+                        <li>• ✅ Enhanced CSP headers for better security</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Enhanced Table -->
+        <div class="bg-white rounded-lg shadow-lg overflow-x-auto">
+            <div class="p-4 border-b">
+                <h2 class="text-lg font-semibold">Members Table - Enhanced View</h2>
+                <p class="text-sm text-gray-600">Now showing phone, section, and skills information</p>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="border-b bg-gray-50">
+                        <tr>
+                            <th class="text-left p-3 text-sm font-medium">Avatar</th>
+                            <th class="text-left p-3 text-sm font-medium">Name</th>
+                            <th class="text-left p-3 text-sm font-medium">Email</th>
+                            <th class="text-left p-3 text-sm font-medium">Phone</th>
+                            <th class="text-left p-3 text-sm font-medium">Student ID</th>
+                            <th class="text-left p-3 text-sm font-medium">Stream</th>
+                            <th class="text-left p-3 text-sm font-medium">Section</th>
+                            <th class="text-left p-3 text-sm font-medium">Batch</th>
+                            <th class="text-left p-3 text-sm font-medium">Skills</th>
+                            <th class="text-left p-3 text-sm font-medium">Status</th>
+                            <th class="text-left p-3 text-sm font-medium">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold text-blue-600">
+                                    JS
+                                </div>
+                            </td>
+                            <td class="p-3 font-medium">John Smith</td>
+                            <td class="p-3 text-sm">john.smith@example.com</td>
+                            <td class="p-3 text-sm">+880 1234567890</td>
+                            <td class="p-3 text-sm font-mono">CS2023001</td>
+                            <td class="p-3 text-sm">Computer Science</td>
+                            <td class="p-3 text-sm">A</td>
+                            <td class="p-3 text-sm">2023</td>
+                            <td class="p-3 text-sm max-w-[150px]">
+                                <div class="flex flex-wrap gap-1">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Programming</span>
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Web Dev</span>
+                                    <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">+3</span>
+                                </div>
+                            </td>
+                            <td class="p-3">
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">approved</span>
+                            </td>
+                            <td class="p-3">
+                                <button class="text-gray-500 hover:text-gray-700">⋯</button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3">
+                                <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-sm font-bold text-purple-600">
+                                    SA
+                                </div>
+                            </td>
+                            <td class="p-3 font-medium">Sarah Ahmed</td>
+                            <td class="p-3 text-sm">sarah.ahmed@example.com</td>
+                            <td class="p-3 text-sm">+880 9876543210</td>
+                            <td class="p-3 text-sm font-mono">CS2023002</td>
+                            <td class="p-3 text-sm">Computer Science</td>
+                            <td class="p-3 text-sm">B</td>
+                            <td class="p-3 text-sm">2023</td>
+                            <td class="p-3 text-sm max-w-[150px]">
+                                <div class="flex flex-wrap gap-1">
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">UI/UX</span>
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Graphics</span>
+                                    <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">+2</span>
+                                </div>
+                            </td>
+                            <td class="p-3">
+                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">pending</span>
+                            </td>
+                            <td class="p-3">
+                                <button class="text-gray-500 hover:text-gray-700">⋯</button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-sm font-bold text-green-600">
+                                    MR
+                                </div>
+                            </td>
+                            <td class="p-3 font-medium">Mohammed Rahman</td>
+                            <td class="p-3 text-sm">mohammed.rahman@example.com</td>
+                            <td class="p-3 text-sm">+880 1112223333</td>
+                            <td class="p-3 text-sm font-mono">EEE2023015</td>
+                            <td class="p-3 text-sm">Electrical Engineering</td>
+                            <td class="p-3 text-sm">A</td>
+                            <td class="p-3 text-sm">2023</td>
+                            <td class="p-3 text-sm max-w-[150px]">
+                                <span class="text-gray-500">No skills listed</span>
+                            </td>
+                            <td class="p-3">
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">approved</span>
+                            </td>
+                            <td class="p-3">
+                                <button class="text-gray-500 hover:text-gray-700">⋯</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">Key Improvements Made</h3>
+            
+            <div class="space-y-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="font-medium">Enhanced Table Columns</h4>
+                        <p class="text-sm text-gray-600">Added Phone, Section, and Skills columns to show more information at a glance</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="font-medium">Skills Preview</h4>
+                        <p class="text-sm text-gray-600">Shows first 2 skills as badges with "+N" indicator for additional skills</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="font-medium">Error Fixes</h4>
+                        <p class="text-sm text-gray-600">Fixed JavaScript errors, Firebase logging issues, and missing manifest</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

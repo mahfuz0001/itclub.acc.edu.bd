@@ -657,9 +657,12 @@ export default function MembersPage() {
                   <TableHead className="w-12"></TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
                   <TableHead>Student ID</TableHead>
                   <TableHead>Stream</TableHead>
+                  <TableHead>Section</TableHead>
                   <TableHead>Batch</TableHead>
+                  <TableHead>Skills</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -677,11 +680,35 @@ export default function MembersPage() {
                     </TableCell>
                     <TableCell className="font-medium">{member.name}</TableCell>
                     <TableCell>{member.email}</TableCell>
+                    <TableCell className="text-sm">
+                      {member.phone || "N/A"}
+                    </TableCell>
                     <TableCell className="font-mono text-sm">
                       {member.rollNumber || "N/A"}
                     </TableCell>
                     <TableCell>{member.stream}</TableCell>
+                    <TableCell className="text-sm">
+                      {member.section || "N/A"}
+                    </TableCell>
                     <TableCell>{member.year || member.batch}</TableCell>
+                    <TableCell className="text-sm max-w-[150px]">
+                      {member.techSkills && member.techSkills.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {member.techSkills.slice(0, 2).map((skill, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {skill}
+                            </Badge>
+                          ))}
+                          {member.techSkills.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{member.techSkills.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">No skills listed</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={getBadgeVariant(member.status)}>
                         {member.status}

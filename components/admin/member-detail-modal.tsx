@@ -561,7 +561,7 @@ export default function MemberDetailModal({
                 )}
 
                 {/* General Skills (for existing members) */}
-                {currentMember.skills && currentMember.skills.length > 0 && (
+                {currentMember.skills && Array.isArray(currentMember.skills) && currentMember.skills.length > 0 && (
                   <div>
                     <p className="text-sm font-medium mb-2">General Skills</p>
                     <div className="flex flex-wrap gap-2">
