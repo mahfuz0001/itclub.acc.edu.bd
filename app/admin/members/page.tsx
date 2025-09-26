@@ -111,6 +111,7 @@ interface Member {
   website?: string;
   // Application Details
   reason?: string;
+  agreeToTerms?: boolean;
   // Additional fields for existing members
   bio?: string;
   skills?: string[];
@@ -221,9 +222,29 @@ export default function MembersPage() {
             rollNumber: doc.data().rollNumber,
             photoUrl: doc.data().photoUrl,
             createdAt: doc.data().createdAt,
+            // Contact Information
             phone: doc.data().phone,
             address: doc.data().address,
+            facebook: doc.data().facebook,
+            // Academic Information
+            section: doc.data().section,
+            previousSchool: doc.data().previousSchool,
+            // Skills and Experience
+            techSkills: doc.data().techSkills,
+            techSkillsOther: doc.data().techSkillsOther,
+            leadershipSkills: doc.data().leadershipSkills,
+            leadershipOther: doc.data().leadershipOther,
+            thingsToLearn: doc.data().thingsToLearn,
+            achievements: doc.data().achievements,
+            // Online Presence
+            portfolio: doc.data().portfolio,
+            github: doc.data().github,
+            freelancing: doc.data().freelancing,
             website: doc.data().website,
+            // Application Details
+            reason: doc.data().reason,
+            agreeToTerms: doc.data().agreeToTerms,
+            // Additional fields for existing members
             bio: doc.data().bio,
             skills: doc.data().skills,
             position: doc.data().position,
@@ -253,17 +274,29 @@ export default function MembersPage() {
         year: updatedMember.year,
         batch: updatedMember.batch,
         rollNumber: updatedMember.rollNumber,
+        // Contact Information
         phone: updatedMember.phone,
         address: updatedMember.address,
         facebook: updatedMember.facebook,
+        // Academic Information
         section: updatedMember.section,
         previousSchool: updatedMember.previousSchool,
+        // Skills and Experience
+        techSkills: updatedMember.techSkills,
+        techSkillsOther: updatedMember.techSkillsOther,
+        leadershipSkills: updatedMember.leadershipSkills,
+        leadershipOther: updatedMember.leadershipOther,
+        thingsToLearn: updatedMember.thingsToLearn,
         achievements: updatedMember.achievements,
+        // Online Presence
         portfolio: updatedMember.portfolio,
         github: updatedMember.github,
         website: updatedMember.website,
         freelancing: updatedMember.freelancing,
+        // Application Details
         reason: updatedMember.reason,
+        agreeToTerms: updatedMember.agreeToTerms,
+        // Additional fields
         bio: updatedMember.bio,
       });
       

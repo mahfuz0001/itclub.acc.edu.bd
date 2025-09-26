@@ -33,6 +33,7 @@ export interface Member {
   website?: string;
   // Application Details
   reason?: string;
+  agreeToTerms?: boolean;
   // Additional fields for existing members
   bio?: string;
   skills?: string[];
