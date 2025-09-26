@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/firebase/auth-provider";
+import { logAdminAction, AUDIT_ACTIONS } from "@/lib/firebase/audit";
 import {
   collection,
   query,
@@ -22,7 +23,21 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, UserPlus, Trash2, Edit } from "lucide-react";
+import { 
+  Loader2, 
+  Search, 
+  UserPlus, 
+  Trash2, 
+  Edit, 
+  Eye,
+  Download,
+  Filter,
+  MoreHorizontal,
+  Users,
+  TrendingUp,
+  Calendar,
+  FileSpreadsheet
+} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,15 +56,45 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import MemberDetailModal from "@/components/admin/member-detail-modal";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from "recharts";
 
 interface Member {
   id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   stream: string;
   batch: string;
+  year: string;
   status: string;
   rollNumber?: string;
+  photoUrl?: string;
+  createdAt?: string;
+  phone?: string;
+  address?: string;
+  website?: string;
+  bio?: string;
+  skills?: string[];
+  position?: string;
 }
 
 export default function MembersPage() {
@@ -58,6 +103,9 @@ export default function MembersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [batchFilter, setBatchFilter] = useState("all");
+  const [streamFilter, setStreamFilter] = useState("all");
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -70,9 +118,47 @@ export default function MembersPage() {
           member.batch.toLowerCase().includes(searchTerm.toLowerCase()) ||
           member.rollNumber?.toLowerCase().includes(searchTerm.toLowerCase())) &&
         (statusFilter === "all" || member.status === statusFilter) &&
-        (batchFilter === "all" || member.batch === batchFilter)
+        (batchFilter === "all" || member.batch === batchFilter || member.year === batchFilter) &&
+        (streamFilter === "all" || member.stream === streamFilter)
     );
-  }, [members, searchTerm, statusFilter, batchFilter]);
+  }, [members, searchTerm, statusFilter, batchFilter, streamFilter]);
+
+  // Analytics calculations
+  const analytics = useMemo(() => {
+    const activeMembers = members.filter(m => m.status === "active" || m.status === "approved").length;
+    const inactiveMembers = members.length - activeMembers;
+    
+    const streamDistribution = members.reduce((acc: { [key: string]: number }, member) => {
+      acc[member.stream] = (acc[member.stream] || 0) + 1;
+      return acc;
+    }, {});
+
+    const batchDistribution = members.reduce((acc: { [key: string]: number }, member) => {
+      const batch = member.year || member.batch;
+      acc[batch] = (acc[batch] || 0) + 1;
+      return acc;
+    }, {});
+
+    const streamData = Object.entries(streamDistribution).map(([stream, count]) => ({
+      stream,
+      count
+    }));
+
+    const batchData = Object.entries(batchDistribution).map(([batch, count]) => ({
+      batch,
+      count
+    })).sort((a, b) => a.batch.localeCompare(b.batch));
+
+    return {
+      totalMembers: members.length,
+      activeMembers,
+      inactiveMembers,
+      totalBatches: Object.keys(batchDistribution).length,
+      totalStreams: Object.keys(streamDistribution).length,
+      streamData,
+      batchData
+    };
+  }, [members]);
 
   useEffect(() => {
     if (user) {
@@ -104,12 +190,23 @@ export default function MembersPage() {
         (doc) =>
           ({
             id: doc.id,
-            name: doc.data().name,
+            name: doc.data().name || `${doc.data().firstName || ''} ${doc.data().lastName || ''}`.trim(),
+            firstName: doc.data().firstName,
+            lastName: doc.data().lastName,
             email: doc.data().email,
             stream: doc.data().stream,
-            batch: doc.data().year,
+            batch: doc.data().year || doc.data().batch,
+            year: doc.data().year || doc.data().batch,
             status: doc.data().status,
             rollNumber: doc.data().rollNumber,
+            photoUrl: doc.data().photoUrl,
+            createdAt: doc.data().createdAt,
+            phone: doc.data().phone,
+            address: doc.data().address,
+            website: doc.data().website,
+            bio: doc.data().bio,
+            skills: doc.data().skills,
+            position: doc.data().position,
           } as Member)
       );
 
@@ -128,12 +225,25 @@ export default function MembersPage() {
 
   const updateMemberStatus = async (memberId: string, newStatus: string) => {
     try {
-      await updateDoc(doc(db, "members", memberId), { status: newStatus });
+      await updateDoc(doc(db, "applications", memberId), { status: newStatus });
       setMembers((prevMembers) =>
         prevMembers.map((member) =>
           member.id === memberId ? { ...member, status: newStatus } : member
         )
       );
+      
+      // Log the action
+      if (user) {
+        await logAdminAction(
+          user.uid,
+          user.email || '',
+          AUDIT_ACTIONS.MEMBER_STATUS_CHANGE,
+          'member',
+          memberId,
+          { oldStatus: members.find(m => m.id === memberId)?.status, newStatus }
+        );
+      }
+      
       toast({
         title: "Success",
         description: `Member status updated to ${newStatus}`,
@@ -151,10 +261,24 @@ export default function MembersPage() {
   const deleteMember = async (memberId: string) => {
     if (confirm("Are you sure you want to delete this member?")) {
       try {
-        await deleteDoc(doc(db, "members", memberId));
+        const memberToDelete = members.find(m => m.id === memberId);
+        await deleteDoc(doc(db, "applications", memberId));
         setMembers((prevMembers) =>
           prevMembers.filter((member) => member.id !== memberId)
         );
+        
+        // Log the action
+        if (user && memberToDelete) {
+          await logAdminAction(
+            user.uid,
+            user.email || '',
+            AUDIT_ACTIONS.MEMBER_DELETE,
+            'member',
+            memberId,
+            { memberName: memberToDelete.name, memberEmail: memberToDelete.email }
+          );
+        }
+        
         toast({
           title: "Success",
           description: "Member deleted successfully",
@@ -170,6 +294,75 @@ export default function MembersPage() {
     }
   };
 
+  const exportToCSV = () => {
+    const headers = ["Name", "Email", "Student ID", "Stream", "Batch", "Status", "Joined Date"];
+    const csvContent = [
+      headers.join(","),
+      ...filteredMembers.map(member => [
+        `"${member.name}"`,
+        `"${member.email}"`,
+        `"${member.rollNumber || 'N/A'}"`,
+        `"${member.stream}"`,
+        `"${member.year || member.batch}"`,
+        `"${member.status}"`,
+        `"${member.createdAt ? new Date(member.createdAt).toLocaleDateString() : 'N/A'}"`
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `members-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Log the export action
+    if (user) {
+      logAdminAction(
+        user.uid,
+        user.email || '',
+        AUDIT_ACTIONS.BULK_EXPORT,
+        'members',
+        'csv_export',
+        { recordCount: filteredMembers.length, format: 'CSV' }
+      );
+    }
+  };
+
+  const viewMemberDetails = (member: Member) => {
+    setSelectedMember(member);
+    setIsDetailModalOpen(true);
+    
+    // Log the view action
+    if (user) {
+      logAdminAction(
+        user.uid,
+        user.email || '',
+        AUDIT_ACTIONS.MEMBER_VIEW,
+        'member',
+        member.id,
+        { memberName: member.name, memberEmail: member.email }
+      );
+    }
+  };
+
+  const getBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+      case 'approved':
+        return 'default';
+      case 'inactive':
+        return 'secondary';
+      case 'pending':
+        return 'outline';
+      default:
+        return 'secondary';
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -180,152 +373,303 @@ export default function MembersPage() {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              Members
-              <Badge variant="outline" className="text-sm">
-                {members.length} Total
-              </Badge>
-            </CardTitle>
-          </div>
-          <div className="flex gap-4 text-sm">
-            <div className="text-center">
-              <div className="font-bold text-green-600">
-                {members.filter(member => member.status === "active" || member.status === "approved").length}
-              </div>
-              <div className="text-gray-600">Active</div>
-            </div>
-            <div className="text-center">
-              <div className="font-bold text-gray-600">
-                {members.filter(member => member.status === "inactive").length}
-              </div>
-              <div className="text-gray-600">Inactive</div>
-            </div>
-            <div className="text-center">
-              <div className="font-bold text-blue-600">
-                {[...new Set(members.map(m => m.batch))].length}
-              </div>
-              <div className="text-gray-600">Batches</div>
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header and Analytics */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Members</h1>
+          <p className="text-muted-foreground">
+            Manage and view all club members
+          </p>
         </div>
-        {user?.role !== "panel" && (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="mt-4">
-                <UserPlus className="mr-2 h-4 w-4" /> Add New Member
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Member</DialogTitle>
-              </DialogHeader>
-              {/* Add form fields for new member here */}
-            </DialogContent>
-          </Dialog>
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0 md:space-x-4">
-          <div className="flex items-center w-full md:w-auto">
-            <Search className="h-5 w-5 text-muted-foreground mr-2" />
-            <Input
-              placeholder="Search members by name, email, ID, stream, or batch..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-          <div className="flex gap-2">
-            <Select value={batchFilter} onValueChange={setBatchFilter}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="All Batches" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Batches</SelectItem>
-                {[...new Set(members.map(member => member.batch))].sort().map(batch => (
-                  <SelectItem key={batch} value={batch}>{batch}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={exportToCSV}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+          {user?.role !== "panel" && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Add Member
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Member</DialogTitle>
+                </DialogHeader>
+                <p className="text-sm text-muted-foreground">
+                  Member addition form will be implemented here.
+                </p>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
+      </div>
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Student ID</TableHead>
-                <TableHead>Stream</TableHead>
-                <TableHead>Batch</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMembers.map((member) => (
-                <TableRow key={member.id}>
-                  <TableCell className="font-medium">{member.name}</TableCell>
-                  <TableCell>{member.email}</TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {member.rollNumber || "N/A"}
-                  </TableCell>
-                  <TableCell>{member.stream}</TableCell>
-                  <TableCell>{member.batch}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        member.status === "active" ? "default" : "secondary"
-                      }
-                    >
-                      {member.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        updateMemberStatus(
-                          member.id,
-                          member.status === "active" ? "inactive" : "active"
-                        )
-                      }
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    {user?.role !== "panel" && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteMember(member.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    )}
-                  </TableCell>
+      {/* Analytics Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+            <Users className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">
+              {analytics.totalMembers}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              All registered members
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Active Members</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {analytics.activeMembers}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {analytics.totalMembers > 0 
+                ? Math.round((analytics.activeMembers / analytics.totalMembers) * 100) 
+                : 0}% of total
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Inactive Members</CardTitle>
+            <Users className="h-4 w-4 text-gray-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-600">
+              {analytics.inactiveMembers}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Need attention
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Academic Batches</CardTitle>
+            <Calendar className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">
+              {analytics.totalBatches}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Different batches
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Academic Streams</CardTitle>
+            <Filter className="h-4 w-4 text-indigo-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-indigo-600">
+              {analytics.totalStreams}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Different streams
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Members by Batch Chart */}
+      {analytics.batchData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Members by Batch</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={analytics.batchData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="batch" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Filters and Search */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex items-center flex-1 w-full">
+              <Search className="h-5 w-5 text-muted-foreground mr-2" />
+              <Input
+                placeholder="Search members by name, email, ID, stream, or batch..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <Select value={streamFilter} onValueChange={setStreamFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="All Streams" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Streams</SelectItem>
+                  {[...new Set(members.map(member => member.stream))].sort().map(stream => (
+                    <SelectItem key={stream} value={stream}>{stream}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={batchFilter} onValueChange={setBatchFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="All Batches" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Batches</SelectItem>
+                  {[...new Set(members.map(member => member.year || member.batch))].sort().map(batch => (
+                    <SelectItem key={batch} value={batch}>{batch}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-center mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredMembers.length} of {members.length} members
+            </p>
+            <Badge variant="outline" className="text-sm">
+              {filteredMembers.length} Results
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Members Table */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"></TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Student ID</TableHead>
+                  <TableHead>Stream</TableHead>
+                  <TableHead>Batch</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {filteredMembers.map((member) => (
+                  <TableRow key={member.id} className="hover:bg-muted/50">
+                    <TableCell>
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={member.photoUrl} alt={member.name} />
+                        <AvatarFallback>
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                    </TableCell>
+                    <TableCell className="font-medium">{member.name}</TableCell>
+                    <TableCell>{member.email}</TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {member.rollNumber || "N/A"}
+                    </TableCell>
+                    <TableCell>{member.stream}</TableCell>
+                    <TableCell>{member.year || member.batch}</TableCell>
+                    <TableCell>
+                      <Badge variant={getBadgeVariant(member.status)}>
+                        {member.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => viewMemberDetails(member)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => 
+                              updateMemberStatus(
+                                member.id,
+                                member.status === "active" ? "inactive" : "active"
+                              )
+                            }
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Toggle Status
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {user?.role !== "panel" && (
+                            <DropdownMenuItem 
+                              onClick={() => deleteMember(member.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Member Detail Modal */}
+      <MemberDetailModal
+        member={selectedMember}
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        onEdit={(member) => {
+          // Handle edit member functionality
+          console.log("Edit member:", member);
+          toast({
+            title: "Edit Member",
+            description: "Edit functionality will be implemented soon.",
+          });
+        }}
+      />
+    </div>
   );
 }
