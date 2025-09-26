@@ -20,6 +20,7 @@ import {
   UserCircle,
   Shield,
   ImageIcon,
+  Activity,
 } from "lucide-react";
 
 export default function AdminSidebar() {
@@ -75,6 +76,12 @@ export default function AdminSidebar() {
       href: "/admin/users",
       icon: <Shield className="h-5 w-5" />,
       roles: ["root"],
+    },
+    {
+      title: "Activity",
+      href: "/admin/activity",
+      icon: <Activity className="h-5 w-5" />,
+      roles: ["admin", "root"],
     },
     {
       title: "Settings",

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/firebase/auth-provider";
+import { logAdminAction, AUDIT_ACTIONS } from "@/lib/firebase/audit";
 import {
   collection,
   query,
@@ -230,6 +231,19 @@ export default function MembersPage() {
           member.id === memberId ? { ...member, status: newStatus } : member
         )
       );
+      
+      // Log the action
+      if (user) {
+        await logAdminAction(
+          user.uid,
+          user.email || '',
+          AUDIT_ACTIONS.MEMBER_STATUS_CHANGE,
+          'member',
+          memberId,
+          { oldStatus: members.find(m => m.id === memberId)?.status, newStatus }
+        );
+      }
+      
       toast({
         title: "Success",
         description: `Member status updated to ${newStatus}`,
@@ -247,10 +261,24 @@ export default function MembersPage() {
   const deleteMember = async (memberId: string) => {
     if (confirm("Are you sure you want to delete this member?")) {
       try {
+        const memberToDelete = members.find(m => m.id === memberId);
         await deleteDoc(doc(db, "applications", memberId));
         setMembers((prevMembers) =>
           prevMembers.filter((member) => member.id !== memberId)
         );
+        
+        // Log the action
+        if (user && memberToDelete) {
+          await logAdminAction(
+            user.uid,
+            user.email || '',
+            AUDIT_ACTIONS.MEMBER_DELETE,
+            'member',
+            memberId,
+            { memberName: memberToDelete.name, memberEmail: memberToDelete.email }
+          );
+        }
+        
         toast({
           title: "Success",
           description: "Member deleted successfully",
@@ -290,11 +318,35 @@ export default function MembersPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    // Log the export action
+    if (user) {
+      logAdminAction(
+        user.uid,
+        user.email || '',
+        AUDIT_ACTIONS.BULK_EXPORT,
+        'members',
+        'csv_export',
+        { recordCount: filteredMembers.length, format: 'CSV' }
+      );
+    }
   };
 
   const viewMemberDetails = (member: Member) => {
     setSelectedMember(member);
     setIsDetailModalOpen(true);
+    
+    // Log the view action
+    if (user) {
+      logAdminAction(
+        user.uid,
+        user.email || '',
+        AUDIT_ACTIONS.MEMBER_VIEW,
+        'member',
+        member.id,
+        { memberName: member.name, memberEmail: member.email }
+      );
+    }
   };
 
   const getBadgeVariant = (status: string) => {
