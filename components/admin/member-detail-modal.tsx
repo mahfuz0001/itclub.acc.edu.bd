@@ -24,7 +24,17 @@ import {
   Globe,
   Edit,
   Download,
-  ExternalLink
+  ExternalLink,
+  Users,
+  School,
+  Trophy,
+  Target,
+  Lightbulb,
+  Code,
+  Briefcase,
+  Heart,
+  Github,
+  Facebook
 } from "lucide-react";
 import { format, isValid, parseISO } from "date-fns";
 
@@ -82,9 +92,28 @@ interface Member {
   rollNumber?: string;
   photoUrl?: string;
   createdAt?: string;
+  // Contact Information
   phone?: string;
   address?: string;
+  facebook?: string;
+  // Academic Information
+  section?: string;
+  previousSchool?: string;
+  // Skills and Experience
+  techSkills?: string[];
+  techSkillsOther?: string;
+  leadershipSkills?: string[];
+  leadershipOther?: string;
+  thingsToLearn?: string[];
+  achievements?: string;
+  // Online Presence
+  portfolio?: string;
+  github?: string;
+  freelancing?: string;
   website?: string;
+  // Application Details
+  reason?: string;
+  // Additional fields for existing members
   bio?: string;
   skills?: string[];
   position?: string;
@@ -239,6 +268,16 @@ export default function MemberDetailModal({
                   </div>
                 )}
 
+                {member.section && (
+                  <div className="flex items-center gap-3">
+                    <Hash className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Section</p>
+                      <p className="text-sm text-muted-foreground">{member.section}</p>
+                    </div>
+                  </div>
+                )}
+
                 {member.createdAt && (
                   <div className="flex items-center gap-3">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -254,51 +293,118 @@ export default function MemberDetailModal({
             </CardContent>
           </Card>
 
-          {/* Additional Information */}
-          {(member.bio || member.address || member.website || (member.skills && member.skills.length > 0)) && (
+          {/* Contact Information */}
+          {(member.facebook) && (
             <Card>
               <CardHeader>
-                <CardTitle>Additional Information</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="h-5 w-5" />
+                  Contact & Social Media
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {member.bio && (
-                  <div>
-                    <p className="text-sm font-medium mb-2">Bio</p>
-                    <p className="text-sm text-muted-foreground">{member.bio}</p>
-                  </div>
-                )}
-
-                {member.address && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Address</p>
-                      <p className="text-sm text-muted-foreground">{member.address}</p>
-                    </div>
-                  </div>
-                )}
-
-                {member.website && (
+                {member.facebook && (
                   <div className="flex items-center gap-3">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <Facebook className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">Website</p>
+                      <p className="text-sm font-medium">Facebook</p>
                       <a 
-                        href={member.website} 
+                        href={member.facebook} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
                       >
-                        {member.website}
+                        {member.facebook}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
 
+          {/* Academic Background */}
+          {(member.previousSchool) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <School className="h-5 w-5" />
+                  Academic Background
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {member.previousSchool && (
+                  <div className="flex items-center gap-3">
+                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">Previous School</p>
+                      <p className="text-sm text-muted-foreground">{member.previousSchool}</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Skills and Experience */}
+          {(member.techSkills?.length || member.leadershipSkills?.length || member.skills?.length || member.techSkillsOther || member.leadershipOther) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Code className="h-5 w-5" />
+                  Skills & Experience
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Technical Skills */}
+                {member.techSkills && member.techSkills.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <Code className="h-4 w-4" />
+                      Technical Skills
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {member.techSkills.map((skill, index) => (
+                        <Badge key={index} variant="secondary">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                    {member.techSkillsOther && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        <span className="font-medium">Additional:</span> {member.techSkillsOther}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Leadership Skills */}
+                {member.leadershipSkills && member.leadershipSkills.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Leadership Skills
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {member.leadershipSkills.map((skill, index) => (
+                        <Badge key={index} variant="outline" className="border-blue-200 text-blue-700">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                    {member.leadershipOther && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        <span className="font-medium">Additional:</span> {member.leadershipOther}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* General Skills (for existing members) */}
                 {member.skills && member.skills.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium mb-2">Skills</p>
+                    <p className="text-sm font-medium mb-2">General Skills</p>
                     <div className="flex flex-wrap gap-2">
                       {member.skills.map((skill, index) => (
                         <Badge key={index} variant="secondary">
@@ -308,6 +414,168 @@ export default function MemberDetailModal({
                     </div>
                   </div>
                 )}
+
+                {/* Things to Learn */}
+                {member.thingsToLearn && member.thingsToLearn.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      Learning Interests
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {member.thingsToLearn.map((item, index) => (
+                        <Badge key={index} variant="outline" className="border-green-200 text-green-700">
+                          {item}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Achievements & Portfolio */}
+          {(member.achievements || member.portfolio || member.github || member.freelancing) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5" />
+                  Achievements & Portfolio
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {member.achievements && (
+                  <div>
+                    <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <Trophy className="h-4 w-4" />
+                      Achievements
+                    </p>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{member.achievements}</p>
+                  </div>
+                )}
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  {member.portfolio && (
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Portfolio</p>
+                        <a 
+                          href={member.portfolio} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                          {member.portfolio}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {member.github && (
+                    <div className="flex items-center gap-3">
+                      <Github className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">GitHub</p>
+                        <a 
+                          href={member.github} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                          {member.github}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {member.freelancing && (
+                    <div className="flex items-center gap-3">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Freelancing</p>
+                        <a 
+                          href={member.freelancing} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                          {member.freelancing}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {member.website && (
+                    <div className="flex items-center gap-3">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">Website</p>
+                        <a 
+                          href={member.website} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                          {member.website}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Application Details */}
+          {(member.reason || member.bio) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="h-5 w-5" />
+                  Personal Statement
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {member.reason && (
+                  <div>
+                    <p className="text-sm font-medium mb-2">Why they wanted to join</p>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{member.reason}</p>
+                  </div>
+                )}
+
+                {member.bio && (
+                  <div>
+                    <p className="text-sm font-medium mb-2">Bio</p>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{member.bio}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Additional Information (Legacy) */}
+          {(member.address) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Location Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Address</p>
+                    <p className="text-sm text-muted-foreground">{member.address}</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
