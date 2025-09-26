@@ -26,7 +26,48 @@ import {
   Download,
   ExternalLink
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
+
+// Safe date parsing utility functions
+const safeParseDateString = (dateString: string | undefined | null): Date | null => {
+  if (!dateString) return null;
+  
+  try {
+    // Try parsing as ISO string first
+    const isoDate = parseISO(dateString);
+    if (isValid(isoDate)) return isoDate;
+    
+    // Try parsing as regular Date
+    const date = new Date(dateString);
+    if (isValid(date)) return date;
+    
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const safeFormatDate = (dateString: string | undefined | null, formatStr: string): string => {
+  const date = safeParseDateString(dateString);
+  if (!date) return 'N/A';
+  
+  try {
+    return format(date, formatStr);
+  } catch {
+    return 'N/A';
+  }
+};
+
+const safeDateDifference = (dateString: string | undefined | null): number | null => {
+  const date = safeParseDateString(dateString);
+  if (!date) return null;
+  
+  try {
+    return Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+  } catch {
+    return null;
+  }
+};
 
 interface Member {
   id: string;
@@ -204,7 +245,7 @@ export default function MemberDetailModal({
                     <div>
                       <p className="text-sm font-medium">Joined Date</p>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(member.createdAt), 'PPP')}
+                        {safeFormatDate(member.createdAt, 'PPP')}
                       </p>
                     </div>
                   </div>
@@ -280,10 +321,10 @@ export default function MemberDetailModal({
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="text-center p-4 bg-muted/50 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">
-                    {member.createdAt ? 
-                      Math.floor((Date.now() - new Date(member.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : 
-                      'N/A'
-                    }
+                    {(() => {
+                      const days = safeDateDifference(member.createdAt);
+                      return days !== null ? days : 'N/A';
+                    })()}
                   </div>
                   <div className="text-sm text-muted-foreground">Days as Member</div>
                 </div>

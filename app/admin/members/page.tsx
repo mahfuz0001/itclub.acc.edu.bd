@@ -66,6 +66,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MemberDetailModal from "@/components/admin/member-detail-modal";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { 
   BarChart, 
   Bar, 
@@ -657,19 +658,21 @@ export default function MembersPage() {
       </Card>
 
       {/* Member Detail Modal */}
-      <MemberDetailModal
-        member={selectedMember}
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        onEdit={(member) => {
-          // Handle edit member functionality
-          console.log("Edit member:", member);
-          toast({
-            title: "Edit Member",
-            description: "Edit functionality will be implemented soon.",
-          });
-        }}
-      />
+      <ErrorBoundary>
+        <MemberDetailModal
+          member={selectedMember}
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          onEdit={(member) => {
+            // Handle edit member functionality
+            console.log("Edit member:", member);
+            toast({
+              title: "Edit Member",
+              description: "Edit functionality will be implemented soon.",
+            });
+          }}
+        />
+      </ErrorBoundary>
     </div>
   );
 }
