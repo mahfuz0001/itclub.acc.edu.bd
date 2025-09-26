@@ -338,25 +338,6 @@ export default function MemberDetailModal({
                   </div>
                 </div>
 
-                {(currentMember.phone || isEditMode) && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Phone</p>
-                      {isEditMode ? (
-                        <Input
-                          value={currentMember.phone || ''}
-                          onChange={(e) => handleFieldChange('phone', e.target.value)}
-                          placeholder="Enter phone number"
-                          className="text-sm"
-                        />
-                      ) : (
-                        <p className="text-sm text-muted-foreground">{currentMember.phone}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
                 {(currentMember.section || isEditMode) && (
                   <div className="flex items-center gap-3">
                     <Hash className="h-4 w-4 text-muted-foreground" />
@@ -370,7 +351,7 @@ export default function MemberDetailModal({
                           className="text-sm"
                         />
                       ) : (
-                        <p className="text-sm text-muted-foreground">{currentMember.section}</p>
+                        <p className="text-sm text-muted-foreground">{currentMember.section || 'Not specified'}</p>
                       )}
                     </div>
                   </div>
@@ -392,116 +373,113 @@ export default function MemberDetailModal({
           </Card>
 
           {/* Contact Information */}
-          {(currentMember.facebook || currentMember.phone || currentMember.address || isEditMode) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Phone className="h-5 w-5" />
-                  Contact & Social Media
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {(currentMember.phone || isEditMode) && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Phone</p>
-                      {isEditMode ? (
-                        <Input
-                          value={currentMember.phone || ''}
-                          onChange={(e) => handleFieldChange('phone', e.target.value)}
-                          placeholder="Enter phone number"
-                          className="text-sm"
-                        />
-                      ) : (
-                        <p className="text-sm text-muted-foreground">{currentMember.phone}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {(currentMember.address || isEditMode) && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Address</p>
-                      {isEditMode ? (
-                        <Textarea
-                          value={currentMember.address || ''}
-                          onChange={(e) => handleFieldChange('address', e.target.value)}
-                          placeholder="Enter address"
-                          className="text-sm"
-                          rows={2}
-                        />
-                      ) : (
-                        <p className="text-sm text-muted-foreground">{currentMember.address}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {(currentMember.facebook || isEditMode) && (
-                  <div className="flex items-center gap-3">
-                    <Facebook className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Facebook</p>
-                      {isEditMode ? (
-                        <Input
-                          value={currentMember.facebook || ''}
-                          onChange={(e) => handleFieldChange('facebook', e.target.value)}
-                          placeholder="https://facebook.com/your.profile"
-                          className="text-sm"
-                        />
-                      ) : (
-                        <a 
-                          href={currentMember.facebook} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                        >
-                          {currentMember.facebook}
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Academic Background */}
-          {(currentMember.previousSchool || isEditMode) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <School className="h-5 w-5" />
-                  Academic Background
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="h-5 w-5" />
+                Contact & Social Media
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Phone - required field */}
+              <div className="flex items-center gap-3">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Phone</p>
+                  {isEditMode ? (
+                    <Input
+                      value={currentMember.phone || ''}
+                      onChange={(e) => handleFieldChange('phone', e.target.value)}
+                      placeholder="Enter phone number"
+                      className="text-sm"
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{currentMember.phone || 'Not provided'}</p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Address - required field */}
+              <div className="flex items-start gap-3">
+                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Address</p>
+                  {isEditMode ? (
+                    <Textarea
+                      value={currentMember.address || ''}
+                      onChange={(e) => handleFieldChange('address', e.target.value)}
+                      placeholder="Enter address"
+                      className="text-sm"
+                      rows={2}
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentMember.address || 'Not provided'}</p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Facebook - optional field */}
+              {(currentMember.facebook || isEditMode) && (
                 <div className="flex items-center gap-3">
-                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                  <Facebook className="h-4 w-4 text-muted-foreground" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Previous School</p>
+                    <p className="text-sm font-medium">Facebook Profile</p>
                     {isEditMode ? (
                       <Input
-                        value={currentMember.previousSchool || ''}
-                        onChange={(e) => handleFieldChange('previousSchool', e.target.value)}
-                        placeholder="Enter previous school"
+                        value={currentMember.facebook || ''}
+                        onChange={(e) => handleFieldChange('facebook', e.target.value)}
+                        placeholder="https://facebook.com/your.profile"
                         className="text-sm"
                       />
+                    ) : currentMember.facebook ? (
+                      <a 
+                        href={currentMember.facebook} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                      >
+                        {currentMember.facebook}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
                     ) : (
-                      <p className="text-sm text-muted-foreground">{currentMember.previousSchool}</p>
+                      <p className="text-sm text-muted-foreground">Not provided</p>
                     )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Academic Background */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <School className="h-5 w-5" />
+                Academic Background
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3">
+                <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Previous School</p>
+                  {isEditMode ? (
+                    <Input
+                      value={currentMember.previousSchool || ''}
+                      onChange={(e) => handleFieldChange('previousSchool', e.target.value)}
+                      placeholder="Enter previous school"
+                      className="text-sm"
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{currentMember.previousSchool || 'Not specified'}</p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Skills and Experience */}
-          {(member.techSkills?.length || member.leadershipSkills?.length || member.skills?.length || member.techSkillsOther || member.leadershipOther) && (
+          {(((currentMember.techSkills?.length ?? 0) > 0) || ((currentMember.leadershipSkills?.length ?? 0) > 0) || ((currentMember.skills?.length ?? 0) > 0) || currentMember.techSkillsOther || currentMember.leadershipOther || ((currentMember.thingsToLearn?.length ?? 0) > 0) || isEditMode) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -511,55 +489,83 @@ export default function MemberDetailModal({
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Technical Skills */}
-                {member.techSkills && member.techSkills.length > 0 && (
+                {((currentMember.techSkills?.length ?? 0) > 0 || currentMember.techSkillsOther || isEditMode) && (
                   <div>
                     <p className="text-sm font-medium mb-2 flex items-center gap-2">
                       <Code className="h-4 w-4" />
                       Technical Skills
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {member.techSkills.map((skill, index) => (
-                        <Badge key={index} variant="secondary">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                    {member.techSkillsOther && (
-                      <p className="text-sm text-muted-foreground mt-2">
-                        <span className="font-medium">Additional:</span> {member.techSkillsOther}
-                      </p>
+                    {currentMember.techSkills && currentMember.techSkills.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {currentMember.techSkills.map((skill, index) => (
+                          <Badge key={index} variant="secondary">
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    {(currentMember.techSkillsOther || isEditMode) && (
+                      <div>
+                        <p className="text-sm font-medium mb-1">Additional Technical Skills:</p>
+                        {isEditMode ? (
+                          <Input
+                            value={currentMember.techSkillsOther || ''}
+                            onChange={(e) => handleFieldChange('techSkillsOther', e.target.value)}
+                            placeholder="Other technical skills"
+                            className="text-sm"
+                          />
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            {currentMember.techSkillsOther || 'None specified'}
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
 
                 {/* Leadership Skills */}
-                {member.leadershipSkills && member.leadershipSkills.length > 0 && (
+                {((currentMember.leadershipSkills?.length ?? 0) > 0 || currentMember.leadershipOther || isEditMode) && (
                   <div>
                     <p className="text-sm font-medium mb-2 flex items-center gap-2">
                       <Users className="h-4 w-4" />
-                      Leadership Skills
+                      Leadership & Management Skills
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {member.leadershipSkills.map((skill, index) => (
-                        <Badge key={index} variant="outline" className="border-blue-200 text-blue-700">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                    {member.leadershipOther && (
-                      <p className="text-sm text-muted-foreground mt-2">
-                        <span className="font-medium">Additional:</span> {member.leadershipOther}
-                      </p>
+                    {currentMember.leadershipSkills && currentMember.leadershipSkills.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {currentMember.leadershipSkills.map((skill, index) => (
+                          <Badge key={index} variant="outline" className="border-blue-200 text-blue-700">
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    {(currentMember.leadershipOther || isEditMode) && (
+                      <div>
+                        <p className="text-sm font-medium mb-1">Additional Leadership Skills:</p>
+                        {isEditMode ? (
+                          <Input
+                            value={currentMember.leadershipOther || ''}
+                            onChange={(e) => handleFieldChange('leadershipOther', e.target.value)}
+                            placeholder="Other leadership skills"
+                            className="text-sm"
+                          />
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            {currentMember.leadershipOther || 'None specified'}
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
 
                 {/* General Skills (for existing members) */}
-                {member.skills && member.skills.length > 0 && (
+                {currentMember.skills && Array.isArray(currentMember.skills) && currentMember.skills.length > 0 && (
                   <div>
                     <p className="text-sm font-medium mb-2">General Skills</p>
                     <div className="flex flex-wrap gap-2">
-                      {member.skills.map((skill, index) => (
+                      {currentMember.skills.map((skill, index) => (
                         <Badge key={index} variant="secondary">
                           {skill}
                         </Badge>
@@ -569,19 +575,23 @@ export default function MemberDetailModal({
                 )}
 
                 {/* Things to Learn */}
-                {member.thingsToLearn && member.thingsToLearn.length > 0 && (
+                {((currentMember.thingsToLearn?.length ?? 0) > 0 || isEditMode) && (
                   <div>
                     <p className="text-sm font-medium mb-2 flex items-center gap-2">
                       <Target className="h-4 w-4" />
                       Learning Interests
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      {member.thingsToLearn.map((item, index) => (
-                        <Badge key={index} variant="outline" className="border-green-200 text-green-700">
-                          {item}
-                        </Badge>
-                      ))}
-                    </div>
+                    {currentMember.thingsToLearn && currentMember.thingsToLearn.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {currentMember.thingsToLearn.map((item, index) => (
+                          <Badge key={index} variant="outline" className="border-green-200 text-green-700">
+                            {item}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : isEditMode ? (
+                      <p className="text-sm text-muted-foreground">No learning interests specified</p>
+                    ) : null}
                   </div>
                 )}
               </CardContent>
@@ -732,51 +742,49 @@ export default function MemberDetailModal({
           )}
 
           {/* Application Details */}
-          {(currentMember.reason || currentMember.bio || isEditMode) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="h-5 w-5" />
-                  Personal Statement
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {(currentMember.reason || isEditMode) && (
-                  <div>
-                    <p className="text-sm font-medium mb-2">Why they wanted to join</p>
-                    {isEditMode ? (
-                      <Textarea
-                        value={currentMember.reason || ''}
-                        onChange={(e) => handleFieldChange('reason', e.target.value)}
-                        placeholder="Tell us why you want to join our club and what you hope to achieve..."
-                        className="text-sm"
-                        rows={4}
-                      />
-                    ) : (
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentMember.reason}</p>
-                    )}
-                  </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5" />
+                Personal Statement
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Reason - required field during signup */}
+              <div>
+                <p className="text-sm font-medium mb-2">Why they wanted to join</p>
+                {isEditMode ? (
+                  <Textarea
+                    value={currentMember.reason || ''}
+                    onChange={(e) => handleFieldChange('reason', e.target.value)}
+                    placeholder="Tell us why you want to join our club and what you hope to achieve..."
+                    className="text-sm"
+                    rows={4}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentMember.reason || 'No reason provided'}</p>
                 )}
+              </div>
 
-                {(currentMember.bio || isEditMode) && (
-                  <div>
-                    <p className="text-sm font-medium mb-2">Bio</p>
-                    {isEditMode ? (
-                      <Textarea
-                        value={currentMember.bio || ''}
-                        onChange={(e) => handleFieldChange('bio', e.target.value)}
-                        placeholder="Enter a short bio"
-                        className="text-sm"
-                        rows={3}
-                      />
-                    ) : (
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentMember.bio}</p>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+              {/* Bio - additional field for existing members */}
+              {(currentMember.bio || isEditMode) && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Bio</p>
+                  {isEditMode ? (
+                    <Textarea
+                      value={currentMember.bio || ''}
+                      onChange={(e) => handleFieldChange('bio', e.target.value)}
+                      placeholder="Enter a short bio"
+                      className="text-sm"
+                      rows={3}
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{currentMember.bio}</p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
 
           {/* Member Statistics */}

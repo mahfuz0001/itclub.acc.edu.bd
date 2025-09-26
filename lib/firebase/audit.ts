@@ -31,7 +31,7 @@ export async function logAdminAction(
   metadata: { ipAddress?: string; userAgent?: string } = {}
 ): Promise<void> {
   try {
-    const logEntry: AuditLog = {
+    const logEntry: any = {
       adminId,
       adminEmail,
       action,
@@ -39,9 +39,15 @@ export async function logAdminAction(
       targetId,
       details: typeof details === 'object' ? details : { value: details },
       timestamp: new Date().toISOString(),
-      ipAddress: metadata.ipAddress,
-      userAgent: metadata.userAgent,
     };
+
+    // Only include optional fields if they have values
+    if (metadata.ipAddress) {
+      logEntry.ipAddress = metadata.ipAddress;
+    }
+    if (metadata.userAgent) {
+      logEntry.userAgent = metadata.userAgent;
+    }
 
     await addDoc(collection(db, "auditLogs"), logEntry);
   } catch (error) {
