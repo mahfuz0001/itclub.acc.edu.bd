@@ -23,12 +23,12 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Loader2, 
-  Search, 
-  UserPlus, 
-  Trash2, 
-  Edit, 
+import {
+  Loader2,
+  Search,
+  UserPlus,
+  Trash2,
+  Edit,
   Eye,
   Download,
   Filter,
@@ -36,7 +36,9 @@ import {
   Users,
   TrendingUp,
   Calendar,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Globe, // Added for social media links
+  BookOpen, // Added for skills/name/id
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,14 +69,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MemberDetailModal from "@/components/admin/member-detail-modal";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 
 interface Member {
@@ -118,6 +120,9 @@ interface Member {
   position?: string;
 }
 
+// Define the possible export types
+type ExportType = "all" | "basic" | "social" | "skills_id";
+
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,7 +153,7 @@ export default function MembersPage() {
   const analytics = useMemo(() => {
     const activeMembers = members.filter(m => m.status === "active" || m.status === "approved").length;
     const inactiveMembers = members.length - activeMembers;
-    
+
     const streamDistribution = members.reduce((acc: { [key: string]: number }, member) => {
       acc[member.stream] = (acc[member.stream] || 0) + 1;
       return acc;
@@ -299,13 +304,13 @@ export default function MembersPage() {
         // Additional fields
         bio: updatedMember.bio,
       });
-      
+
       setMembers((prevMembers) =>
         prevMembers.map((member) =>
           member.id === updatedMember.id ? updatedMember : member
         )
       );
-      
+
       // Log the action
       if (user) {
         await logAdminAction(
@@ -317,7 +322,7 @@ export default function MembersPage() {
           { memberName: updatedMember.name, memberEmail: updatedMember.email }
         );
       }
-      
+
       toast({
         title: "Success",
         description: "Member information updated successfully",
@@ -340,7 +345,7 @@ export default function MembersPage() {
           member.id === memberId ? { ...member, status: newStatus } : member
         )
       );
-      
+
       // Log the action
       if (user) {
         await logAdminAction(
@@ -352,7 +357,7 @@ export default function MembersPage() {
           { oldStatus: members.find(m => m.id === memberId)?.status, newStatus }
         );
       }
-      
+
       toast({
         title: "Success",
         description: `Member status updated to ${newStatus}`,
@@ -375,7 +380,7 @@ export default function MembersPage() {
         setMembers((prevMembers) =>
           prevMembers.filter((member) => member.id !== memberId)
         );
-        
+
         // Log the action
         if (user && memberToDelete) {
           await logAdminAction(
@@ -387,7 +392,7 @@ export default function MembersPage() {
             { memberName: memberToDelete.name, memberEmail: memberToDelete.email }
           );
         }
-        
+
         toast({
           title: "Success",
           description: "Member deleted successfully",
@@ -403,48 +408,187 @@ export default function MembersPage() {
     }
   };
 
-  const exportToCSV = () => {
-    const headers = ["Name", "Email", "Student ID", "Stream", "Batch", "Status", "Joined Date"];
-    const csvContent = [
-      headers.join(","),
-      ...filteredMembers.map(member => [
-        `"${member.name}"`,
-        `"${member.email}"`,
-        `"${member.rollNumber || 'N/A'}"`,
-        `"${member.stream}"`,
-        `"${member.year || member.batch}"`,
-        `"${member.status}"`,
-        `"${member.createdAt ? new Date(member.createdAt).toLocaleDateString() : 'N/A'}"`
-      ].join(","))
-    ].join("\n");
+  // --- NEW/MODIFIED EXPORT FUNCTIONS ---
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const getExportData = (member: Member, type: ExportType) => {
+    const commonData = {
+      Name: member.name,
+      Email: member.email,
+      Stream: member.stream,
+      Batch: member.year || member.batch,
+      Status: member.status,
+      JoinedDate: member.createdAt ? new Date(member.createdAt).toLocaleDateString() : 'N/A',
+    };
+
+    switch (type) {
+      case 'basic':
+        return {
+          ...commonData,
+          'Student ID': member.rollNumber || 'N/A',
+          Phone: member.phone || 'N/A',
+          Section: member.section || 'N/A',
+        };
+      case 'social':
+        return {
+          Name: member.name,
+          Email: member.email,
+          Facebook: member.facebook || 'N/A',
+          GitHub: member.github || 'N/A',
+          Portfolio: member.portfolio || 'N/A',
+          Website: member.website || 'N/A',
+          Freelancing: member.freelancing || 'N/A',
+        };
+      case 'skills_id':
+        return {
+          Name: member.name,
+          'Student ID': member.rollNumber || 'N/A',
+          Skills: member.skills ? member.skills.join('; ') : 'N/A',
+          'Tech Skills': member.techSkills ? member.techSkills.join('; ') : 'N/A',
+          'Leadership Skills': member.leadershipSkills ? member.leadershipSkills.join('; ') : 'N/A',
+        };
+      case 'all':
+      default:
+        // Map ALL properties from the Member interface that we care about in the export
+        return {
+          ID: member.id,
+          Name: member.name,
+          'First Name': member.firstName,
+          'Last Name': member.lastName,
+          Email: member.email,
+          Stream: member.stream,
+          Batch: member.year || member.batch,
+          Year: member.year,
+          Status: member.status,
+          'Roll Number': member.rollNumber,
+          'Photo URL': member.photoUrl,
+          'Created At': member.createdAt,
+          Phone: member.phone,
+          Address: member.address,
+          Facebook: member.facebook,
+          Section: member.section,
+          'Previous School': member.previousSchool,
+          'Tech Skills': member.techSkills ? member.techSkills.join('; ') : '',
+          'Tech Skills Other': member.techSkillsOther,
+          'Leadership Skills': member.leadershipSkills ? member.leadershipSkills.join('; ') : '',
+          'Leadership Other': member.leadershipOther,
+          'Things to Learn': member.thingsToLearn ? member.thingsToLearn.join('; ') : '',
+          Achievements: member.achievements,
+          Portfolio: member.portfolio,
+          GitHub: member.github,
+          Freelancing: member.freelancing,
+          Website: member.website,
+          Reason: member.reason,
+          'Agreed to Terms': member.agreeToTerms,
+          Bio: member.bio,
+          Skills: member.skills ? member.skills.join('; ') : '',
+          Position: member.position,
+        };
+    }
+  };
+
+  const downloadCSV = (csvData: string, type: ExportType) => {
+    const dateStr = new Date().toISOString().split('T')[0];
+    const baseFileName = `members_export`;
+    let fileName = `${baseFileName}.csv`;
+    let logType = AUDIT_ACTIONS.BULK_EXPORT;
+    let logPayload = { recordCount: filteredMembers.length, format: 'CSV' };
+
+    switch (type) {
+        case 'basic':
+            fileName = `${baseFileName}_basic_${dateStr}.csv`;
+            logPayload = { ...logPayload, subset: 'Basic Info' };
+            break;
+        case 'social':
+            fileName = `${baseFileName}_social_${dateStr}.csv`;
+            logPayload = { ...logPayload, subset: 'Social Links' };
+            break;
+        case 'skills_id':
+            fileName = `${baseFileName}_skills_id_${dateStr}.csv`;
+            logPayload = { ...logPayload, subset: 'Skills & ID' };
+            break;
+        case 'all':
+        default:
+            fileName = `${baseFileName}_all_${dateStr}.csv`;
+            logPayload = { ...logPayload, subset: 'All Data' };
+            break;
+    }
+
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", `members-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", fileName);
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Log the export action
     if (user) {
       logAdminAction(
         user.uid,
         user.email || '',
-        AUDIT_ACTIONS.BULK_EXPORT,
+        logType,
         'members',
         'csv_export',
-        { recordCount: filteredMembers.length, format: 'CSV' }
+        logPayload
       );
     }
   };
 
+  const exportSelectedFields = (type: ExportType) => {
+    if (filteredMembers.length === 0) {
+        toast({
+            title: "Warning",
+            description: "No members match the current filters to export.",
+            variant: "default",
+        });
+        return;
+    }
+
+    try {
+        const dataToExport = filteredMembers.map(member => getExportData(member, type));
+
+        if (dataToExport.length === 0) return;
+
+        // Determine Headers from the first object's keys
+        const headers = Object.keys(dataToExport[0]);
+
+        const csvContent = [
+            headers.join(","),
+            ...dataToExport.map(row =>
+                headers.map(header => {
+                    let value = row[header as keyof typeof row] === undefined || row[header as keyof typeof row] === null ? '' : String(row[header as keyof typeof row]);
+                    // Escape double quotes and wrap in quotes
+                    value = value.replace(/"/g, '""');
+                    return `"${value}"`;
+                }).join(",")
+            )
+        ].join("\n");
+
+        downloadCSV(csvContent, type);
+
+        toast({
+            title: "Export Initiated",
+            description: `Exporting ${type.toUpperCase()} data. Check your downloads.`,
+            variant: "default",
+        });
+    } catch (error) {
+        console.error(`Error during ${type} export:`, error);
+        toast({
+            title: "Error",
+            description: `Failed to prepare ${type} export.`,
+            variant: "destructive",
+        });
+    }
+  };
+
+  // Removed the old standalone exportToCSV which is now handled by exportSelectedFields('all')
+
   const viewMemberDetails = (member: Member) => {
     setSelectedMember(member);
     setIsDetailModalOpen(true);
-    
+
     // Log the view action
     if (user) {
       logAdminAction(
@@ -492,10 +636,41 @@ export default function MembersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={exportToCSV}>
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
+          {/* NEW EXPORT DROPDOWN MENU */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" />
+                Export Data
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Select Export Data</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => exportSelectedFields('all')}>
+                    <FileSpreadsheet className="mr-2 h-4 w-4" />
+                    Export All Fields
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportSelectedFields('basic')}>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Export Basic Info (ID, Contact, Status)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportSelectedFields('skills_id')}>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    Export ID, Name & Skills
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportSelectedFields('social')}>
+                    <Globe className="mr-2 h-4 w-4" />
+                    Export Social Media Links
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={fetchMembers} disabled={loading}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Refresh List
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/* END NEW EXPORT DROPDOWN MENU */}
+          
           {user?.role !== "panel" && (
             <Dialog>
               <DialogTrigger asChild>
@@ -517,7 +692,7 @@ export default function MembersPage() {
         </div>
       </div>
 
-      {/* Analytics Cards */}
+      {/* Analytics Cards - UNCHANGED */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -544,8 +719,8 @@ export default function MembersPage() {
               {analytics.activeMembers}
             </div>
             <p className="text-xs text-muted-foreground">
-              {analytics.totalMembers > 0 
-                ? Math.round((analytics.activeMembers / analytics.totalMembers) * 100) 
+              {analytics.totalMembers > 0
+                ? Math.round((analytics.activeMembers / analytics.totalMembers) * 100)
                 : 0}% of total
             </p>
           </CardContent>
@@ -597,7 +772,7 @@ export default function MembersPage() {
         </Card>
       </div>
 
-      {/* Members by Batch Chart */}
+      {/* Members by Batch Chart - UNCHANGED */}
       {analytics.batchData.length > 0 && (
         <Card>
           <CardHeader>
@@ -617,7 +792,7 @@ export default function MembersPage() {
         </Card>
       )}
 
-      {/* Filters and Search */}
+      {/* Filters and Search - UNCHANGED */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -668,7 +843,7 @@ export default function MembersPage() {
               </Select>
             </div>
           </div>
-          
+
           <div className="flex justify-between items-center mt-4 pt-4 border-t">
             <p className="text-sm text-muted-foreground">
               Showing {filteredMembers.length} of {members.length} members
@@ -680,7 +855,7 @@ export default function MembersPage() {
         </CardContent>
       </Card>
 
-      {/* Members Table */}
+      {/* Members Table - UNCHANGED */}
       <Card>
         <CardContent className="p-0">
           <div className="rounded-md border">
@@ -760,8 +935,8 @@ export default function MembersPage() {
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => 
+                          <DropdownMenuItem
+                            onClick={() =>
                               updateMemberStatus(
                                 member.id,
                                 member.status === "active" ? "inactive" : "active"
@@ -773,13 +948,13 @@ export default function MembersPage() {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {user?.role !== "panel" && (
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => deleteMember(member.id)}
                               className="text-destructive"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Delete
-                            </DropdownMenuItem>
+                            </DropdownMenu>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -792,7 +967,7 @@ export default function MembersPage() {
         </CardContent>
       </Card>
 
-      {/* Member Detail Modal */}
+      {/* Member Detail Modal - UNCHANGED */}
       <ErrorBoundary>
         <MemberDetailModal
           member={selectedMember}
