@@ -43,7 +43,7 @@ export default function ThankYouPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Button asChild size="lg" className="bg-[#74bf45] hover:bg-[#75c445] text-black font-semibold py-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <Link
-                href="https://m.me/j/AbYTzMWlTECfzMmO/"
+                href="https://m.me/j/AbaI7YPbVD6j6WoI/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3"
